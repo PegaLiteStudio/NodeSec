@@ -1,5 +1,6 @@
 import mongoose, {Document, Schema} from 'mongoose';
 import bcrypt from "bcryptjs";
+import {getPreferredTime} from "../utils/time";
 
 export interface ISuperAdmin extends Document {
     name: string;
@@ -35,7 +36,7 @@ const userSchema = new Schema<ISuperAdmin>({
     },
     createdAt: {
         type: String,
-        default: () => new Date().toISOString(),
+        default: () => getPreferredTime(),
     },
 
 });

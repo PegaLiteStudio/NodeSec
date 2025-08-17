@@ -1,4 +1,5 @@
 import mongoose, {Document, Schema} from 'mongoose';
+import {getPreferredTime} from "../utils/time";
 
 export interface IAgent extends Document {
     name: string;
@@ -38,7 +39,7 @@ const userSchema = new Schema<IAgent>({
     },
     createdAt: {
         type: String,
-        default: () => new Date().toISOString(),
+        default: () => getPreferredTime(),
     },
 
 });

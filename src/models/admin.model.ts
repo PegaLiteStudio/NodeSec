@@ -1,4 +1,5 @@
 import mongoose, {Document, Schema} from 'mongoose';
+import {getPreferredTime} from "../utils/time";
 
 export interface IAdmin extends Document {
     name: string;
@@ -78,7 +79,7 @@ const userSchema = new Schema<IAdmin>({
     },
     expiresAt: {
         type: String,
-        default: () => new Date().toISOString(),
+        default: () => getPreferredTime(),
     }
 
 });
