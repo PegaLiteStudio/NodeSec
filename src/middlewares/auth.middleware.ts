@@ -8,7 +8,7 @@ export const protect = (req: Request, res: Response, next: NextFunction) => {
     if (!token) return respondFailed(res, RESPONSE_MESSAGES.SESSION_EXPIRED);
 
     try {
-        req.user = jwt.verify(token, process.env.JWT_SECRET || '');
+        req.user = jwt.verify(token, process.env.JWT_SECRET || 'U(z5HI&%pFnwMM%!v');
         next();
     } catch (error) {
         return respondFailed(res, RESPONSE_MESSAGES.SESSION_EXPIRED);

@@ -14,7 +14,7 @@ import {Request, Response} from 'express';
 const RESPONSE_MESSAGES = {
     // === VALIDATION ERRORS (000-099) ===
     /** Required parameters are missing from the request */
-    MISSING_PARAMETERS: "000",
+    MISSING_OR_INVALID_PARAMETERS: "000",
     /** Email format is invalid or not provided */
     INVALID_EMAIL: "001",
     /** Phone number format is invalid */

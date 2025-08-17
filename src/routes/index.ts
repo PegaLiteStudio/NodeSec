@@ -1,13 +1,15 @@
 import {Router} from 'express';
-// import userRoutes from './user.routes';
+
+import userRoutes from './user.routes';
 import superAdminRoutes from './superAdmin.routes';
+import adminRoutes from './admin.routes';
 import authRoutes from "./auth.routes";
-// import other routes...
 
 const router = Router();
 
-// router.use('/users', userRoutes);
-router.use('/root-sec', superAdminRoutes);
 router.use('/auth', authRoutes);
+router.use('/users', userRoutes);
+router.use('/admin', adminRoutes);
+router.use('/super-admin', superAdminRoutes);
 
 export default router;

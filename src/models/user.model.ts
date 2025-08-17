@@ -8,7 +8,7 @@ export interface IUser extends Document {
     deviceIds: string[];
     status: "active" | "banned" | "suspended";
     createdBy: string;
-    createdAt: Date;
+    createdAt: string;
 }
 
 const userSchema = new Schema<IUser>({
@@ -48,8 +48,8 @@ const userSchema = new Schema<IUser>({
         required: true,
     },
     createdAt: {
-        type: Date,
-        default: () => new Date(),
+        type: String,
+        default: () => new Date().toISOString(),
     },
 
 });

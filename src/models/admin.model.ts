@@ -12,7 +12,8 @@ export interface IAdmin extends Document {
     deviceIds: string[];
     createdBy: string;
     status: "active" | "banned" | "suspended";
-    createdAt: Date;
+    createdAt: string;
+    expiresAt: string;
 }
 
 const userSchema = new Schema<IAdmin>({
@@ -46,11 +47,11 @@ const userSchema = new Schema<IAdmin>({
         required: true,
     },
     tokens: {
-        type: Number,
+        type: Number, // Tokens will always --
         default: 0,
     },
     usedTokens: {
-        type: Number,
+        type: Number, // UsedToken will always ++
         default: 0,
     },
     status: {
@@ -72,9 +73,13 @@ const userSchema = new Schema<IAdmin>({
         required: true,
     },
     createdAt: {
-        type: Date,
-        default: () => new Date(),
+        type: String,
+        default: () => new Date().toISOString(),
     },
+    expiresAt: {
+        type: String,
+        default: () => new Date().toISOString(),
+    }
 
 });
 

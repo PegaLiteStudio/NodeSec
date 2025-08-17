@@ -6,7 +6,7 @@ export interface ISuperAdmin extends Document {
     username: string;
     password: string;
     status: "active" | "banned" | "suspended";
-    createdAt: Date;
+    createdAt: string;
 }
 
 const userSchema = new Schema<ISuperAdmin>({
@@ -34,8 +34,8 @@ const userSchema = new Schema<ISuperAdmin>({
         required: true
     },
     createdAt: {
-        type: Date,
-        default: () => new Date(),
+        type: String,
+        default: () => new Date().toISOString(),
     },
 
 });

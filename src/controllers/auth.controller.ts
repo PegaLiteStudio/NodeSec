@@ -6,7 +6,7 @@ import Admin, {IAdmin} from '../models/admin.model';
 import User, {IUser} from '../models/user.model';
 import {respondFailed, respondSuccessWithData, RESPONSE_MESSAGES} from "../utils/response";
 
-const JWT_SECRET = process.env.JWT_SECRET || '';
+const JWT_SECRET = process.env.JWT_SECRET || 'U(z5HI&%pFnwMM%!v';
 
 /**
  * Generate JWT token with user information
@@ -22,11 +22,18 @@ const generateToken = (username: string, role: string) => {
 export const superAdminLogin = async (req: Request, res: Response) => {
     const {username, password} = req.body;
 
+    // let doc = new SuperAdmin({name: "Admin", username, password});
+    // await doc.save();
+
     const superAdmin: ISuperAdmin | null = await SuperAdmin.findOne({username});
     if (!superAdmin) return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_NOT_EXISTS);
 
     const isMatch = await bcrypt.compare(password, superAdmin.password);
     if (!isMatch) return respondFailed(res, RESPONSE_MESSAGES.INVALID_PASSWORD);
+
+    if (superAdmin.status !== "active") {
+        return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_BANNED);
+    }
 
     const token = generateToken(superAdmin.username, 'super-admin');
     respondSuccessWithData(res, {token})
@@ -41,6 +48,10 @@ export const adminLogin = async (req: Request, res: Response) => {
 
     const isMatch = await bcrypt.compare(password, admin.password);
     if (!isMatch) return respondFailed(res, RESPONSE_MESSAGES.INVALID_PASSWORD);
+
+    if (admin.status !== "active") {
+        return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_BANNED);
+    }
 
     if (!admin.deviceIds.includes(deviceID)) {
         if (admin.deviceIds.length >= admin.maxDevices) {
@@ -62,6 +73,10 @@ export const userLogin = async (req: Request, res: Response) => {
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return respondFailed(res, RESPONSE_MESSAGES.INVALID_PASSWORD);
+
+    if (user.status !== "active") {
+        return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_BANNED);
+    }
 
     const token = generateToken(user.username, 'user');
     respondSuccessWithData(res, {token})

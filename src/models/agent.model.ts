@@ -6,7 +6,7 @@ export interface IAgent extends Document {
     maxDevices: number;
     status: "active" | "suspended"; // -> Once the app gets suspended, it can never be live again
     createdBy: string;
-    createdAt: Date;
+    createdAt: string;
 }
 
 const userSchema = new Schema<IAgent>({
@@ -37,8 +37,8 @@ const userSchema = new Schema<IAgent>({
         required: true,
     },
     createdAt: {
-        type: Date,
-        default: () => new Date(),
+        type: String,
+        default: () => new Date().toISOString(),
     },
 
 });
