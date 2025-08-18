@@ -1,5 +1,7 @@
 import mongoose, {Document, Schema} from 'mongoose';
 import {getPreferredTime} from "../utils/time";
+import bcrypt from "bcryptjs";
+import {ISuperAdmin} from "./superAdmin.model";
 
 export interface IAdmin extends Document {
     name: string;
@@ -82,6 +84,13 @@ const userSchema = new Schema<IAdmin>({
         default: () => getPreferredTime(),
     }
 
+});
+
+userSchema.pre<ISuperAdmin>('save', async function (next) {
+    if (!this.isModified('password')) return next();
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
 });
 
 const User = mongoose.model<IAdmin>('Admins', userSchema);
