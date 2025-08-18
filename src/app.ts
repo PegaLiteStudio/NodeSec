@@ -12,6 +12,8 @@ dotenv.config();
 const app: Application = express();
 
 // Global Middlewares
+app.set("trust proxy", 1);
+
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(cors());
