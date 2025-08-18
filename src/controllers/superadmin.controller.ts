@@ -11,7 +11,16 @@ export const addAdmin = async (req: Request, res: Response) => {
         return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_EXISTS)
     }
 
-    let admin: IAdmin = new AdminModel({name, username, password, tokens, maxDevices, expiresAt, createdBy : req.user.username, createdAt : getPreferredTime()});
+    let admin: IAdmin = new AdminModel({
+        name,
+        username,
+        password,
+        tokens,
+        maxDevices,
+        expiresAt,
+        createdBy: req.user.username,
+        createdAt: getPreferredTime()
+    });
     await admin.save();
 
     respondSuccess(res);
@@ -26,3 +35,11 @@ export const getAllAdmins = async (req: Request, res: Response) => {
 };
 
 
+export const getAdminDetails = async (req: Request, res: Response) => {
+    const {username} = req.body;
+    const admin = await AdminModel.findOne({username}).lean();
+    if (!admin) {
+        return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_NOT_EXISTS);
+    }
+    respondSuccessWithData(res, admin);
+};

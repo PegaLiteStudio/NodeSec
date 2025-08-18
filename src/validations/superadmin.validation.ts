@@ -8,3 +8,9 @@ export const addAdminSchema = z.object({
     maxDevices: z.number().min(1),
     expiresAt: z.string().min(1),
 });
+
+
+export const getAdminDetailsSchema = z.object({
+    username: z.string().min(5).max(30),
+});
+
