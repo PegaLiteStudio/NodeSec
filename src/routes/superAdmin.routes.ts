@@ -10,7 +10,6 @@ const router = express.Router();
 router.use(protect); // JWT middleware
 router.use(authorizeRoles('super-admin'));
 router.post('/add-admin', validate(addAdminSchema), superAdminCtrl.addAdmin);
-
-// router.get('/admins', superAdminCtrl.getAllAdmins);
+router.post('/admins', superAdminCtrl.getAllAdmins);
 
 export default router;

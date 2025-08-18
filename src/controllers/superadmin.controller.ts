@@ -1,5 +1,5 @@
 import {Request, Response} from "express";
-import {respondFailed, respondSuccess, RESPONSE_MESSAGES} from "../utils/response";
+import {respondFailed, respondSuccess, respondSuccessWithData, RESPONSE_MESSAGES} from "../utils/response";
 import AdminModel, {IAdmin} from "../models/admin.model";
 import {getPreferredTime} from "../utils/time";
 
@@ -16,4 +16,13 @@ export const addAdmin = async (req: Request, res: Response) => {
 
     respondSuccess(res);
 };
+
+
+export const getAllAdmins = async (req: Request, res: Response) => {
+
+    const admins = await AdminModel.find().lean();
+
+    respondSuccessWithData(res, admins);
+};
+
 
