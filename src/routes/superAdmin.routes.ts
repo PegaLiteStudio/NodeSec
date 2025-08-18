@@ -4,7 +4,6 @@ import {protect} from '../middlewares/auth.middleware';
 import * as superAdminCtrl from '../controllers/superadmin.controller';
 import {validate} from "../middlewares/validateRequest";
 import {addAdminSchema, getAdminDetailsSchema, saveChangesSchema} from "../validations/superadmin.validation";
-import {saveAdminChanges} from "../controllers/superadmin.controller";
 
 const router = express.Router();
 
