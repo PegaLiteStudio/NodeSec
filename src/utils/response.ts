@@ -58,27 +58,9 @@ const RESPONSE_MESSAGES = {
     /** User subscription has expired */
     SUBSCRIPTION_EXPIRED: "303",
 
-    // === GAME & MATCH ERRORS (600-699) ===
-    /** Requested game could not be found */
-    GAME_NOT_FOUND: "601",
-    /** Match ID does not exist or is invalid */
-    MATCH_NOT_FOUND: "602",
-    /** User has already joined this match */
-    MATCH_ALREADY_JOINED: "603",
-    /** Match has already started, cannot join */
-    MATCH_ALREADY_STARTED: "604",
-    /** All seats in the match are occupied */
-    MATCH_SEATS_FULL: "605",
-    /** Match result has already been submitted */
-    RESULT_ALREADY_SUBMITTED: "606",
-
     // === FINANCIAL & TRANSACTION ERRORS (700-799) ===
     /** Insufficient balance in game wallet */
-    INSUFFICIENT_GAME_BALANCE: "701",
-    /** Insufficient balance in winning wallet */
-    INSUFFICIENT_WINNING_BALANCE: "702",
-    /** Transaction record not found or invalid */
-    TRANSACTION_NOT_FOUND: "703",
+    INSUFFICIENT_TOKENS: "701",
 
     // === APPLICATION & SYSTEM ERRORS (900-999) ===
     /** Application is under maintenance, try again later */
