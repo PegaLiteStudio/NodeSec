@@ -40,7 +40,7 @@ export const superAdminLogin = async (req: Request, res: Response) => {
 };
 
 // SuperAdmin Session Login
-export const superAdminSessionLogin = async (req: Request, res: Response) => {
+export const superAdminSessionLogin = async (_req: Request, res: Response) => {
     respondSuccess(res)
 };
 
