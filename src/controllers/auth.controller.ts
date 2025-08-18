@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import SuperAdmin, {ISuperAdmin} from '../models/superAdmin.model';
 import Admin, {IAdmin} from '../models/admin.model';
 import User, {IUser} from '../models/user.model';
-import {respondFailed, respondSuccessWithData, RESPONSE_MESSAGES} from "../utils/response";
+import {respondFailed, respondSuccess, respondSuccessWithData, RESPONSE_MESSAGES} from "../utils/response";
 
 const JWT_SECRET = process.env.JWT_SECRET || 'U(z5HI&%pFnwMM%!v';
 
@@ -37,6 +37,11 @@ export const superAdminLogin = async (req: Request, res: Response) => {
 
     const token = generateToken(superAdmin.username, 'super-admin');
     respondSuccessWithData(res, {token})
+};
+
+// SuperAdmin Session Login
+export const superAdminSessionLogin = async (req: Request, res: Response) => {
+    respondSuccess(res)
 };
 
 // Admin Login
