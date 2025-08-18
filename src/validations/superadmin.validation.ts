@@ -14,3 +14,15 @@ export const getAdminDetailsSchema = z.object({
     username: z.string().min(5).max(30),
 });
 
+export const saveChangesSchema = z.object({
+    username: z.string().min(5).max(30),
+    changes: z.object({
+        name: z.string().optional(),
+        tokens: z.number().optional(),
+        password: z.string().optional(),
+        status: z.enum(["active", "banned", "suspended"]).optional(),
+        maxDevices: z.number().optional(),
+        expiresAt: z.string().optional()
+    })
+});
+
