@@ -14,7 +14,8 @@ export interface IAdmin extends Document {
     maxDevices: number;
     deviceIds: string[];
     createdBy: string;
-    status: "active" | "banned" | "suspended";
+    status: "active" | "banned" | "suspended"
+    loginAsUser: boolean;
     createdAt: string;
     expiresAt: string;
 }
@@ -56,6 +57,10 @@ const userSchema = new Schema<IAdmin>({
     usedTokens: {
         type: Number, // UsedToken will always ++
         default: 0,
+    },
+    loginAsUser: {
+        type: Boolean,
+        default: false,
     },
     status: {
         type: String,

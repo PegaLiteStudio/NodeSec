@@ -5,7 +5,7 @@ import {getPreferredTime} from "../utils/time";
 import bcrypt from "bcryptjs";
 
 export const addAdmin = async (req: Request, res: Response) => {
-    const {name, username, password, tokens, maxDevices, expiresAt} = req.body;
+    const {name, username, password, tokens, maxDevices, expiresAt, loginAsUser} = req.body;
 
     let doc: IAdmin | null = await AdminModel.findOne({username});
     if (doc) {
@@ -19,6 +19,7 @@ export const addAdmin = async (req: Request, res: Response) => {
         tokens,
         maxDevices,
         expiresAt,
+        loginAsUser,
         createdBy: req.user.username,
         createdAt: getPreferredTime()
     });
@@ -42,17 +43,6 @@ export const getAdminDetails = async (req: Request, res: Response) => {
     if (!admin) {
         return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_NOT_EXISTS);
     }
-    respondSuccessWithData(res, admin);
-};
-
-export const banAdmin = async (req: Request, res: Response) => {
-    const {username} = req.body;
-    const admin = await AdminModel.findOne({username}).lean();
-    if (!admin) {
-        return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_NOT_EXISTS);
-    }
-    await AdminModel.updateOne({username}, {$set: {status: "banned"}});
-
     respondSuccessWithData(res, admin);
 };
 

@@ -7,6 +7,7 @@ export const addAdminSchema = z.object({
     tokens: z.number().min(1),
     maxDevices: z.number().min(1),
     expiresAt: z.string().min(1),
+    loginAsUser: z.boolean(),
 });
 
 
@@ -22,7 +23,8 @@ export const saveChangesSchema = z.object({
         password: z.string().optional(),
         status: z.enum(["active", "banned", "suspended"]).optional(),
         maxDevices: z.number().optional(),
-        expiresAt: z.string().optional()
+        expiresAt: z.string().optional(),
+        loginAsUser: z.boolean().optional()
     })
 });
 

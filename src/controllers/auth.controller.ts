@@ -40,7 +40,17 @@ export const superAdminLogin = async (req: Request, res: Response) => {
 };
 
 // SuperAdmin Session Login
-export const superAdminSessionLogin = async (_req: Request, res: Response) => {
+export const superAdminSessionLogin = async (req: Request, res: Response) => {
+    const {username} = req.user;
+    const doc: IAdmin | null = await SuperAdmin.findOne({username});
+
+    if (!doc) {
+        return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_NOT_EXISTS);
+    }
+
+    if (doc.status !== "active") {
+        return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_BANNED)
+    }
     respondSuccess(res)
 };
 
@@ -69,11 +79,38 @@ export const adminLogin = async (req: Request, res: Response) => {
 };
 
 
+// SuperAdmin Session Login
+export const adminSessionLogin = async (req: Request, res: Response) => {
+    const {username} = req.user;
+    const doc: IAdmin | null = await Admin.findOne({username});
+
+    if (!doc) {
+        return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_NOT_EXISTS);
+    }
+
+    if (doc.status !== "active") {
+        return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_BANNED)
+    }
+
+    respondSuccess(res);
+
+};
+
 // User Login
 export const userLogin = async (req: Request, res: Response) => {
-    const {email, password} = req.body;
+    const {username, password, deviceID} = req.body;
 
-    const user: IUser | null = await User.findOne({email});
+    // let dc = new User({
+    //     name: "First Admin",
+    //     username,
+    //     password,
+    //     maxDevices: 100,
+    //     createdBy: "something",
+    //     createdAt: getPreferredTime()
+    // });
+    // await dc.save();
+
+    const user: IUser | null = await User.findOne({username}).lean();
     if (!user) return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_NOT_EXISTS);
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -83,6 +120,30 @@ export const userLogin = async (req: Request, res: Response) => {
         return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_BANNED);
     }
 
+    if (!user.deviceIds.includes(deviceID)) {
+        if (user.deviceIds.length >= user.maxDevices) {
+            return respondFailed(res, RESPONSE_MESSAGES.MAX_DEVICES_ALREADY_REGISTERED);
+        }
+    }
+
     const token = generateToken(user.username, 'user');
-    respondSuccessWithData(res, {token})
+    respondSuccessWithData(res, {token});
+};
+
+
+// User Session Login
+export const userSessionLogin = async (req: Request, res: Response) => {
+    const {username} = req.user;
+    const doc: IUser | null = await User.findOne({username});
+
+    if (!doc) {
+        return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_NOT_EXISTS);
+    }
+
+    if (doc.status !== "active") {
+        return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_BANNED)
+    }
+
+    respondSuccessWithData(res, {username});
+
 };
