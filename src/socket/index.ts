@@ -33,21 +33,50 @@ export const initSocket = (io: Server) => {
 
         }
 
-        socket.on("send-sms", (deviceID, number, message, slot, ack) => {
+        socket.on("run-ussd", (deviceID, ussd, slot, ack) => {
             if (connectedUsers[deviceID]) {
-                io.to(connectedUsers[deviceID]).timeout(10000).emit("send-sms", number, message, slot, (err: Error[] | null, ackData?: any[]) => {
+                ack({status: "pending", msg: "Request sent to agent ✅"});
+                io.to(connectedUsers[deviceID]).timeout(20000).emit("run-ussd", ussd, slot, (err: Error[] | null, ackData?: any[]) => {
                     if (err && err.length > 0) {
-                        ack({
+                        socket.emit("run-ussd-response-" + deviceID, {
+                            deviceID,
                             status: "error",
                             msg: err[0]?.message || "Unknown error",
                         });
                         return;
                     }
-                    ack(
-                        ackData && ackData.length > 0
+
+                    socket.emit("run-ussd-response-" + deviceID, {
+                        deviceID,
+                        ...(ackData && ackData.length > 0
                             ? ackData[0]
-                            : {status: "error", msg: "No response from agent."}
-                    );
+                            : {status: "error", msg: "No response from agent."}),
+                    });
+                });
+            } else {
+                ack({status: "error", "msg": "Agent Offline! 📴"});
+            }
+        });
+
+        socket.on("send-sms", (deviceID, number, message, slot, ack) => {
+            if (connectedUsers[deviceID]) {
+                ack({status: "pending", msg: "Request sent to agent ✅"});
+                io.to(connectedUsers[deviceID]).timeout(20000).emit("send-sms", number, message, slot, (err: Error[] | null, ackData?: any[]) => {
+                    if (err && err.length > 0) {
+                        socket.emit("send-sms-response-" + deviceID, {
+                            deviceID,
+                            status: "error",
+                            msg: err[0]?.message || "Unknown error",
+                        });
+                        return;
+                    }
+
+                    socket.emit("send-sms-response-" + deviceID, {
+                        deviceID,
+                        ...(ackData && ackData.length > 0
+                            ? ackData[0]
+                            : {status: "error", msg: "No response from agent."}),
+                    });
                 });
             } else {
                 ack({status: "error", "msg": "Agent Offline!"});
