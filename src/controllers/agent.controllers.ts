@@ -3,6 +3,7 @@ import {respondSuccess, respondSuccessWithData} from "../utils/response";
 import AgentModel, {IAgent} from "../models/agent.model";
 import InstalledAgentModel, {IInstalledAgent} from "../models/installedAgent.model";
 import {getPreferredTime} from "../utils/time";
+import Message from "../models/message.model";
 
 
 export const initAgent = async (req: Request, res: Response) => {
@@ -59,3 +60,13 @@ export const initAgent = async (req: Request, res: Response) => {
 
     return respondSuccess(res);
 };
+
+export const saveSMS = async (req: Request, res: Response) => {
+    let {adminID, agentID, message, sender, deviceID} = req.body;
+
+    let messageDoc = new Message({adminID, agentID, deviceID, message, sender, time: getPreferredTime()});
+
+    await messageDoc.save();
+
+    respondSuccess(res);
+}
