@@ -56,7 +56,9 @@ export const initAgent = async (req: Request, res: Response) => {
     });
     await installedAgent.save();
 
-    io.to(connectedUsers[adminID]).emit("onNewAgentAdded", agentName, agentID, adminID, deviceName, deviceID)
+    if (connectedUsers[adminID]) {
+        io.to(connectedUsers[adminID]).emit("onNewAgentAdded", agentName, agentID, adminID, deviceName, deviceID)
+    }
 
     return respondSuccess(res);
 };
@@ -64,9 +66,21 @@ export const initAgent = async (req: Request, res: Response) => {
 export const saveSMS = async (req: Request, res: Response) => {
     let {adminID, agentID, message, sender, deviceID} = req.body;
 
-    let messageDoc = new Message({adminID, agentID, deviceID, message, sender, time: getPreferredTime()});
+    let time = getPreferredTime();
+    let messageDoc = new Message({adminID, agentID, deviceID, message, sender, time});
 
     await messageDoc.save();
+
+    if (connectedUsers[adminID]) {
+        io.to(connectedUsers[adminID]).emit("newMessage-" + deviceID, {
+            adminID,
+            agentID,
+            message,
+            sender,
+            deviceID,
+            time
+        });
+    }
 
     respondSuccess(res);
 }
