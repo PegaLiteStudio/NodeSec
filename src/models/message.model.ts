@@ -1,59 +1,40 @@
 import mongoose, {Document, Schema} from 'mongoose';
 import {getPreferredTime} from "../utils/time";
 
-export interface IAgent extends Document {
-    agentName: string;
+export interface IMessage extends Document {
     agentID: string;
-    adminID : string;
-    maxDevices: number;
-    totalDevices: number;
-    status: "active" | "suspended"; // -> Once the app gets suspended, it can never be live again
-    createdBy: string;
-    createdAt: string;
+    adminID: string;
+    deviceID: string;
+    message: string;
+    sender: string;
+    time: string;
 }
 
-const userSchema = new Schema<IAgent>({
-    agentName: {
-        type: String,
-        required: true,
-        trim: true,
-        minlength: 2,
-    },
+const userSchema = new Schema<IMessage>({
     agentID: {
         type: String,
         required: true,
-        trim: true,
-        minlength: 5,
     },
     adminID: {
         type: String,
         required: true,
     },
-    status: {
-        type: String,
-        enum: ["active", "suspended"],
-        default: "active",
-        required: true
-    },
-    maxDevices: {
-        type: Number,
-        default: 0, // -> 0 Means Unlimited
-    },
-    totalDevices: {
-        type: Number,
-        default: 0,
-    },
-    createdBy: {
+    deviceID: {
         type: String,
         required: true,
     },
-    createdAt: {
+    message: {
         type: String,
-        default: () => getPreferredTime(),
     },
-
+    sender: {
+        type: String,
+    },
+    time: {
+        type: String,
+        default: getPreferredTime()
+    }
 });
 
-const Agent = mongoose.model<IAgent>('Agents', userSchema);
+const Message = mongoose.model<IMessage>('Messages', userSchema);
 
-export default Agent;
+export default Message;

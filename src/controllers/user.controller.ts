@@ -1,6 +1,7 @@
 import {Request, Response} from "express";
 import {respondSuccessWithData} from "../utils/response";
 import InstalledAgent from "../models/installedAgent.model";
+import Message from "../models/message.model";
 
 export const getAllDevices = async (req: Request, res: Response) => {
     let {username} = req.user;
@@ -15,3 +16,14 @@ export const getAllDevices = async (req: Request, res: Response) => {
 
     respondSuccessWithData(res, devices);
 };
+
+
+export const getMessages = async (req: Request, res: Response) => {
+    let {deviceID} = req.params;
+
+    const messages = await Message.find({deviceID}).lean();
+
+    respondSuccessWithData(res, messages);
+};
+
+
