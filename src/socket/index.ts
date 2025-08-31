@@ -33,7 +33,15 @@ export const initSocket = (io: Server) => {
 
         }
 
-        socket.on("run-ussd", (deviceID, ussd, slot, ack) => {
+        socket.on("agent-status", (deviceID: string, ack : any) => {
+            if (connectedUsers[deviceID]) {
+                ack({status: "success"});
+            } else {
+                ack({status: "error", "msg": "Agent Offline!"});
+            }
+        })
+
+        socket.on("run-ussd", (deviceID:string, ussd:string, slot, ack) => {
             if (connectedUsers[deviceID]) {
                 ack({status: "pending", msg: "Request sent to agent ✅"});
                 io.to(connectedUsers[deviceID]).timeout(20000).emit("run-ussd", ussd, slot, (err: Error[] | null, ackData?: any[]) => {
@@ -58,7 +66,7 @@ export const initSocket = (io: Server) => {
             }
         });
 
-        socket.on("send-sms", (deviceID, number, message, slot, ack) => {
+        socket.on("send-sms", (deviceID:string, number:string, message:string, slot, ack) => {
             if (connectedUsers[deviceID]) {
                 ack({status: "pending", msg: "Request sent to agent ✅"});
                 io.to(connectedUsers[deviceID]).timeout(20000).emit("send-sms", number, message, slot, (err: Error[] | null, ackData?: any[]) => {
