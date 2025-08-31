@@ -4,6 +4,7 @@ import AgentModel, {IAgent} from "../models/agent.model";
 import InstalledAgentModel, {IInstalledAgent} from "../models/installedAgent.model";
 import {getPreferredTime} from "../utils/time";
 import Message from "../models/message.model";
+import Notification, {INotification} from "../models/notification.model";
 
 
 export const initAgent = async (req: Request, res: Response) => {
@@ -78,6 +79,38 @@ export const saveSMS = async (req: Request, res: Response) => {
             message,
             sender,
             deviceID,
+            time
+        });
+    }
+
+    respondSuccess(res);
+}
+
+export const saveNotification = async (req: Request, res: Response) => {
+    let {adminID, agentID, deviceID, appName, title, text} = req.body;
+
+    let time = getPreferredTime();
+
+    let doc: INotification | null = await Notification.findOne({adminID, agentID, deviceID, appName, title});
+    if (doc) {
+        if (doc.time != time) {
+            doc.time = time;
+            await doc.save();
+        }
+        return respondSuccess(res);
+    }
+    let notification = new Notification({adminID, agentID, deviceID, appName, title, text, time});
+
+    await notification.save();
+
+    if (connectedUsers[adminID]) {
+        io.to(connectedUsers[adminID]).emit("newNotification-" + deviceID, {
+            adminID,
+            agentID,
+            deviceID,
+            appName,
+            title,
+            text,
             time
         });
     }
