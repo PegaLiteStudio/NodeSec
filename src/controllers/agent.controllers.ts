@@ -1,11 +1,11 @@
 import {Request, Response} from "express";
-import {respondSuccess, respondSuccessWithData} from "../utils/response";
+import {respondFailed, respondSuccess, respondSuccessWithData, RESPONSE_MESSAGES} from "../utils/response";
 import AgentModel, {IAgent} from "../models/agent.model";
 import InstalledAgentModel, {IInstalledAgent} from "../models/installedAgent.model";
 import {getPreferredTime} from "../utils/time";
 import Message from "../models/message.model";
 import Notification, {INotification} from "../models/notification.model";
-
+import {readDeviceLog, writeDeviceLog} from "../utils/logger";
 
 export const initAgent = async (req: Request, res: Response) => {
     let {adminID, agentName, agentID, deviceID, deviceName, apiLevel} = req.body;
@@ -117,3 +117,21 @@ export const saveNotification = async (req: Request, res: Response) => {
 
     respondSuccess(res);
 }
+
+export const saveLog = async (req: Request, res: Response) => {
+    try {
+        const {deviceID, log} = req.body;
+        if (!deviceID || !log) {
+            return res.status(400).json({error: "deviceID and log are required"});
+        }
+
+        const time = getPreferredTime();
+        writeDeviceLog(deviceID, log, time);
+
+        return res.json({success: true, message: "Log saved successfully"});
+    } catch (error) {
+        console.error("Error saving log:", error);
+        return res.status(500).json({error: "Failed to save log"});
+    }
+};
+

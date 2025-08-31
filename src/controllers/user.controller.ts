@@ -1,8 +1,9 @@
 import {Request, Response} from "express";
-import {respondSuccess, respondSuccessWithData} from "../utils/response";
+import {respondFailed, respondSuccess, respondSuccessWithData, RESPONSE_MESSAGES} from "../utils/response";
 import InstalledAgent from "../models/installedAgent.model";
 import Message from "../models/message.model";
 import Notification from "../models/notification.model";
+import {readDeviceLog} from "../utils/logger";
 
 export const getAllDevices = async (req: Request, res: Response) => {
     let {username} = req.user;
@@ -71,9 +72,42 @@ export const deleteMessage = async (req: Request, res: Response) => {
     let {deviceID} = req.params;
     let {sender, time} = req.body;
 
-    await Message.deleteOne({deviceID, sender, time});
+    if (sender == "all" && time == "all") {
+        await Message.deleteMany({deviceID});
+    } else {
+        await Message.deleteOne({deviceID, sender, time});
+    }
 
     respondSuccess(res);
 };
 
+export const deleteNotification = async (req: Request, res: Response) => {
+    let {deviceID} = req.params;
+    let {appName, title, time} = req.body;
+
+    if (appName == "all" && time == "all") {
+        await Notification.deleteMany({deviceID});
+    } else {
+        await Notification.deleteOne({deviceID, appName, title, time});
+    }
+
+    respondSuccess(res);
+};
+
+
+export const getLogs = async (req: Request, res: Response) => {
+    try {
+        const {deviceID} = req.params;
+        if (!deviceID) {
+            return respondFailed(res, RESPONSE_MESSAGES.MISSING_OR_INVALID_PARAMETERS);
+        }
+
+        const logs = readDeviceLog(deviceID);
+
+        return respondSuccessWithData(res, {logs})
+    } catch (error) {
+        console.error("Error reading log:", error);
+        return respondFailed(res, RESPONSE_MESSAGES.ERROR);
+    }
+};
 

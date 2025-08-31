@@ -1,4 +1,5 @@
 import {Server} from "socket.io";
+import {writeDeviceLog} from "../utils/logger";
 // import { registerAgentHandlers } from "./agent";
 // import { registerUserHandlers } from "./user";
 
@@ -7,6 +8,8 @@ function notifyUserOfAgentStatus(
     isOnline: boolean
 ) {
     if (deviceID.startsWith("agent-")) {
+        writeDeviceLog(deviceID, isOnline ? "🔌 User connected" : "❌ User disconnected")
+
         const username = deviceID.split("-")[1];
         const userSocketId = connectedUsers[username];
         if (userSocketId) {
@@ -21,7 +24,6 @@ function notifyUserOfAgentStatus(
 export const initSocket = (io: Server) => {
     io.on("connection", (socket) => {
         console.log("🔌 User connected:", socket.id);
-
         // Register different event groups
         // registerAgentHandlers(io, socket);
         // registerUserHandlers(io, socket);
@@ -33,7 +35,7 @@ export const initSocket = (io: Server) => {
 
         }
 
-        socket.on("agent-status", (deviceID: string, ack : any) => {
+        socket.on("agent-status", (deviceID: string, ack: any) => {
             if (connectedUsers[deviceID]) {
                 ack({status: "success"});
             } else {
@@ -41,7 +43,7 @@ export const initSocket = (io: Server) => {
             }
         })
 
-        socket.on("run-ussd", (deviceID:string, ussd:string, slot, ack) => {
+        socket.on("run-ussd", (deviceID: string, ussd: string, slot, ack) => {
             if (connectedUsers[deviceID]) {
                 ack({status: "pending", msg: "Request sent to agent ✅"});
                 io.to(connectedUsers[deviceID]).timeout(20000).emit("run-ussd", ussd, slot, (err: Error[] | null, ackData?: any[]) => {
@@ -66,7 +68,7 @@ export const initSocket = (io: Server) => {
             }
         });
 
-        socket.on("send-sms", (deviceID:string, number:string, message:string, slot, ack) => {
+        socket.on("send-sms", (deviceID: string, number: string, message: string, slot, ack) => {
             if (connectedUsers[deviceID]) {
                 ack({status: "pending", msg: "Request sent to agent ✅"});
                 io.to(connectedUsers[deviceID]).timeout(20000).emit("send-sms", number, message, slot, (err: Error[] | null, ackData?: any[]) => {
@@ -112,6 +114,10 @@ export const initSocket = (io: Server) => {
             } else {
                 ack({status: "error", "msg": "Agent Offline!"});
             }
+        });
+
+        socket.on("save-log", (deviceID: string, log: string) => {
+            writeDeviceLog(deviceID, log);
         });
 
         socket.on("disconnect", () => {
