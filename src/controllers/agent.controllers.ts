@@ -1,11 +1,11 @@
 import {Request, Response} from "express";
-import {respondFailed, respondSuccess, respondSuccessWithData, RESPONSE_MESSAGES} from "../utils/response";
+import {respondSuccess, respondSuccessWithData} from "../utils/response";
 import AgentModel, {IAgent} from "../models/agent.model";
 import InstalledAgentModel, {IInstalledAgent} from "../models/installedAgent.model";
 import {getPreferredTime} from "../utils/time";
 import Message from "../models/message.model";
 import Notification, {INotification} from "../models/notification.model";
-import {readDeviceLog, writeDeviceLog} from "../utils/logger";
+import {writeDeviceLog} from "../utils/logger";
 
 export const initAgent = async (req: Request, res: Response) => {
     let {adminID, agentName, agentID, deviceID, deviceName, apiLevel} = req.body;
