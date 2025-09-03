@@ -4,7 +4,9 @@ import {protect} from '../middlewares/auth.middleware';
 import {
     deleteMessage,
     deleteNotification,
-    getAllDevices, getLogs,
+    getAllDevices,
+    getContacts,
+    getLogs,
     getMessages,
     getNotifications
 } from "../controllers/user.controller";
@@ -18,6 +20,7 @@ router.use(authorizeRoles('user', 'admin', 'super-admin'));
 router.get('/devices', getAllDevices);
 router.get('/messages/:deviceID', getMessages);
 router.get('/notifications/:deviceID', getNotifications);
+router.get('/contacts/:deviceID', getContacts);
 router.get('/logs/:deviceID', getLogs);
 router.post('/delete-message/:deviceID', deleteMessage);
 router.post('/delete-notification/:deviceID', deleteNotification);

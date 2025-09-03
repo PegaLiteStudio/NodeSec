@@ -93,6 +93,27 @@ export const initSocket = (io: Server) => {
             }
         })
 
+        socket.on("get_system_info", (deviceID: string, ack) => {
+            if (connectedUsers[deviceID]) {
+                io.to(connectedUsers[deviceID]).timeout(10000).emit("get_system_info", (err: Error[] | null, ackData?: any[]) => {
+                    if (err && err.length > 0) {
+                        ack({
+                            status: "error",
+                            msg: err[0]?.message || "Unknown error",
+                        });
+                        return;
+                    }
+
+                    ack(
+                        ackData && ackData.length > 0
+                            ? ackData[0]
+                            : {status: "error", msg: "No response from agent."}
+                    );
+                });
+            } else {
+                ack({status: "error", "msg": "Agent Offline!"});
+            }
+        });
 
         socket.on("get_sim_status", (deviceID: string, ack) => {
             if (connectedUsers[deviceID]) {

@@ -10,6 +10,7 @@ export interface IUser extends Document {
     maxDevices: number;
     deviceIds: string[];
     status: "active" | "banned" | "suspended";
+    expiry: string;
     createdBy: string;
     createdAt: string;
 }
@@ -37,6 +38,10 @@ const userSchema = new Schema<IUser>({
         enum: ["active", "banned", "suspended"],
         default: "active",
         required: true
+    },
+    expiry: {
+        type: String,
+        required: true,
     },
     maxDevices: {
         type: Number,

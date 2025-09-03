@@ -144,6 +144,6 @@ export const userSessionLogin = async (req: Request, res: Response) => {
         return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_BANNED)
     }
 
-    respondSuccessWithData(res, {username});
+    respondSuccessWithData(res, {username, expiry: doc.expiry});
 
 };

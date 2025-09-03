@@ -4,6 +4,7 @@ import InstalledAgent from "../models/installedAgent.model";
 import Message from "../models/message.model";
 import Notification from "../models/notification.model";
 import {readDeviceLog} from "../utils/logger";
+import Contact from "../models/contact.model";
 
 export const getAllDevices = async (req: Request, res: Response) => {
     let {username} = req.user;
@@ -66,6 +67,14 @@ export const getNotifications = async (req: Request, res: Response) => {
     });
 
     respondSuccessWithData(res, notifications);
+};
+
+export const getContacts = async (req: Request, res: Response) => {
+    let {deviceID} = req.params;
+
+    const contacts = await Contact.find({deviceID}).limit(500).lean();
+
+    respondSuccessWithData(res, contacts);
 };
 
 export const deleteMessage = async (req: Request, res: Response) => {

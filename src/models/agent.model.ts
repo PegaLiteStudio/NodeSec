@@ -4,9 +4,10 @@ import {getPreferredTime} from "../utils/time";
 export interface IAgent extends Document {
     agentName: string;
     agentID: string;
-    adminID : string;
+    adminID: string;
     maxDevices: number;
     totalDevices: number;
+    theme: string;
     status: "active" | "suspended"; // -> Once the app gets suspended, it can never be live again
     createdBy: string;
     createdAt: string;
@@ -28,6 +29,9 @@ const userSchema = new Schema<IAgent>({
     adminID: {
         type: String,
         required: true,
+    },
+    theme: {
+        type: String,
     },
     status: {
         type: String,

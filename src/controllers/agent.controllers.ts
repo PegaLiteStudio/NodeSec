@@ -135,3 +135,7 @@ export const saveLog = async (req: Request, res: Response) => {
     }
 };
 
+export const saveContacts = async (req: Request, res: Response) => {
+
+}
+
