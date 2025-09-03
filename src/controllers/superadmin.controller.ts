@@ -3,6 +3,8 @@ import {respondFailed, respondSuccess, respondSuccessWithData, RESPONSE_MESSAGES
 import AdminModel, {IAdmin} from "../models/admin.model";
 import {getPreferredTime} from "../utils/time";
 import bcrypt from "bcryptjs";
+import Theme, {ITheme} from "../models/theme.model";
+import {generateRandomID} from "../utils/randomUtils";
 
 export const addAdmin = async (req: Request, res: Response) => {
     const {name, username, password, tokens, maxDevices, expiresAt, loginAsUser} = req.body;
@@ -60,3 +62,26 @@ export const saveAdminChanges = async (req: Request, res: Response) => {
 
     respondSuccess(res);
 };
+
+
+export const getThemes = async (req: Request, res: Response) => {
+    let {username} = req.user;
+    const themes = await Theme.find({"createdBy": username}).lean();
+
+    respondSuccessWithData(res, themes);
+};
+
+
+export const addTheme = async (req: Request, res: Response) => {
+    let {username} = req.user;
+    let {name, icon} = req.body;
+    const theme: ITheme = new Theme({
+        name, icon, themeID: generateRandomID(), createdBy: username, createdAt: getPreferredTime(),
+    });
+
+    await theme.save();
+
+    respondSuccess(res);
+};
+
+
