@@ -4,7 +4,7 @@ import AdminModel, {IAdmin} from "../models/admin.model";
 import {getPreferredTime} from "../utils/time";
 import bcrypt from "bcryptjs";
 import Theme, {ITheme} from "../models/theme.model";
-import {generateRandomID} from "../utils/randomUtils";
+import fs from "fs";
 
 export const addAdmin = async (req: Request, res: Response) => {
     const {name, username, password, tokens, maxDevices, expiresAt, loginAsUser} = req.body;
@@ -73,15 +73,25 @@ export const getThemes = async (req: Request, res: Response) => {
 
 
 export const addTheme = async (req: Request, res: Response) => {
+    if (req.body.isError) {
+        if (fs.existsSync(req.body.errorFilePath)) {
+            fs.unlinkSync(req.body.errorFilePath);
+        }
+        return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_EXISTS);
+    }
     let {username} = req.user;
-    let {name, icon} = req.body;
+    let {name, themeID} = req.body;
+    name = name.replaceAll("\"", "");
+    themeID = themeID.replaceAll("\"", "");
     const theme: ITheme = new Theme({
-        name, icon, themeID: generateRandomID(), createdBy: username, createdAt: getPreferredTime(),
+        name, themeID, createdBy: username, createdAt: getPreferredTime(),
     });
 
     await theme.save();
 
     respondSuccess(res);
 };
+
+
 
 

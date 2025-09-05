@@ -9,6 +9,7 @@ import {
     getAdminDetailsSchema,
     saveChangesSchema
 } from "../validations/superadmin.validation";
+import {themeUpload} from "../multer/themeUpload";
 
 const router = express.Router();
 
@@ -17,7 +18,7 @@ router.use(authorizeRoles('super-admin'));
 router.get('/admins', superAdminCtrl.getAllAdmins);
 router.get('/themes', superAdminCtrl.getThemes);
 router.post('/add-admin', validate(addAdminSchema), superAdminCtrl.addAdmin);
-router.post('/add-theme', validate(addThemeSchema), superAdminCtrl.addTheme);
+router.post('/add-theme', themeUpload.single("themeIcon"), validate(addThemeSchema), superAdminCtrl.addTheme);
 router.post('/admin', validate(getAdminDetailsSchema), superAdminCtrl.getAdminDetails);
 router.post('/save-changes', validate(saveChangesSchema), superAdminCtrl.saveAdminChanges);
 
