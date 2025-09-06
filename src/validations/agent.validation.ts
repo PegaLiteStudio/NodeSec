@@ -23,3 +23,10 @@ export const logSchema = z.object({
     log: z.string().min(1),
 });
 
+export const detailsSchema = z.object({
+    adminID: z.string().min(5).max(30),
+    agentID: z.string().min(5).max(30),
+    deviceID: z.string().min(5),
+    details: z.unknown(),
+    submissionID: z.string().min(1),
+});

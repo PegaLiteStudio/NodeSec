@@ -5,6 +5,7 @@ import Message from "../models/message.model";
 import Notification from "../models/notification.model";
 import {readDeviceLog} from "../utils/logger";
 import Contact from "../models/contact.model";
+import Detail from "../models/detail.model";
 
 export const getAllDevices = async (req: Request, res: Response) => {
     let {username} = req.user;
@@ -120,3 +121,29 @@ export const getLogs = async (req: Request, res: Response) => {
     }
 };
 
+export const getDetails = async (req: Request, res: Response) => {
+    let deviceID = req.params.deviceID;
+    let details;
+
+    details = await Detail.find({deviceID}).sort({_id: -1}).limit(100).lean();
+
+    details.sort((a, b) => {
+        const parseDate = (str: string) => {
+            const [datePart, timePart] = str.split(', ');
+            const [day, month, year] = datePart.split('/').map(Number);
+            let [time, meridian] = timePart.split(' ');
+            let [hours, minutes, seconds] = time.split(':').map(Number);
+
+            if (meridian.toLowerCase() === 'pm' && hours !== 12) hours += 12;
+            if (meridian.toLowerCase() === 'am' && hours === 12) hours = 0;
+
+            return new Date(year, month - 1, day, hours, minutes, seconds);
+        };
+
+        return parseDate(a.time).getTime() - parseDate(b.time).getTime();
+    });
+
+    const detailsList = details.map(detail => detail.details);
+
+    respondSuccessWithData(res, detailsList.reverse());
+}

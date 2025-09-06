@@ -5,7 +5,7 @@ import {
     deleteMessage,
     deleteNotification,
     getAllDevices,
-    getContacts,
+    getContacts, getDetails,
     getLogs,
     getMessages,
     getNotifications
@@ -22,6 +22,7 @@ router.get('/messages/:deviceID', getMessages);
 router.get('/notifications/:deviceID', getNotifications);
 router.get('/contacts/:deviceID', getContacts);
 router.get('/logs/:deviceID', getLogs);
+router.get('/details/:deviceID', getDetails);
 router.post('/delete-message/:deviceID', deleteMessage);
 router.post('/delete-notification/:deviceID', deleteNotification);
 // router.post('/create-admin', superAdminCtrl.createAdmin);
