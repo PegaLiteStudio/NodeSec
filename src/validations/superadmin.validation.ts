@@ -16,9 +16,7 @@ export const addThemeSchema = z.object({
     themeID: z.string().min(1),
     isError: z.boolean().optional(),
     errorFilePath: z.string().optional(),
-
 });
-
 
 export const getAdminDetailsSchema = z.object({
     username: z.string().min(5).max(30),

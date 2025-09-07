@@ -73,6 +73,7 @@ export const getThemes = async (req: Request, res: Response) => {
 
 
 export const addTheme = async (req: Request, res: Response) => {
+    console.log(req.body);
     if (req.body.isError) {
         if (fs.existsSync(req.body.errorFilePath)) {
             fs.unlinkSync(req.body.errorFilePath);
@@ -84,7 +85,7 @@ export const addTheme = async (req: Request, res: Response) => {
     name = name.replaceAll("\"", "");
     themeID = themeID.replaceAll("\"", "");
     const theme: ITheme = new Theme({
-        name, themeID, createdBy: username, createdAt: getPreferredTime(),
+        name, themeID, createdBy: username, createdAt: getPreferredTime(), "status": "pending"
     });
 
     await theme.save();
