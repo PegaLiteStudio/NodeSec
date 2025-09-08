@@ -1,6 +1,6 @@
 // src/server.ts
 import dotenv from 'dotenv';
-import { httpServer } from './app';   // import httpServer instead of app
+import {httpServer} from './app'; // import httpServer instead of app
 import connectDB from './configs/database';
 
 dotenv.config();
