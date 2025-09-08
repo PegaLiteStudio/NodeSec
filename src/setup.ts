@@ -4,7 +4,8 @@ import * as path from "path";
 // Directories you want to ensure exist
 const requiredDirs: string[] = [
     "data",
-    "data/logs",
+    "data/agent-logs",
+    "data/compile-logs",
     "data/temp",
     "data/themes",
     "data/themes/icons",
@@ -15,7 +16,7 @@ const requiredDirs: string[] = [
 requiredDirs.forEach((dir) => {
     const fullPath = path.join(process.cwd(), dir); // safer than __dirname
     if (!fs.existsSync(fullPath)) {
-        fs.mkdirSync(fullPath, { recursive: true });
+        fs.mkdirSync(fullPath, {recursive: true});
         console.log(`✅ Created folder: ${dir}`);
     } else {
         console.log(`✔️ Folder exists: ${dir}`);
