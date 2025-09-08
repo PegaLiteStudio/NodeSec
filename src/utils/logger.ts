@@ -6,7 +6,7 @@ import { getPreferredTime } from "./time";
  * Writes a log line into data/logs/{deviceID}.log
  */
 export const writeDeviceLog = (deviceID: string, log: string, time: string = getPreferredTime()) => {
-    const logsDir = path.join(__dirname, "../../data/logs");
+    const logsDir = path.join(__dirname, "../../data/agent-logs");
     const logFile = path.join(logsDir, `${deviceID}.log`);
 
     // Ensure logs directory exists
@@ -31,7 +31,7 @@ export const writeDeviceLog = (deviceID: string, log: string, time: string = get
  * Reads last 200 logs from data/logs/{deviceID}.log
  */
 export const readDeviceLog = (deviceID: string): string => {
-    const logsDir = path.join(__dirname, "../../data/logs");
+    const logsDir = path.join(__dirname, "../../data/agent-logs");
     const logFile = path.join(logsDir, `${deviceID}.log`);
 
     if (!fs.existsSync(logFile)) {
