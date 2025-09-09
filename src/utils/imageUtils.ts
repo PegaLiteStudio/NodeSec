@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 import mime from "mime-types";
-import { Request, Response } from "express";
+import {Request, Response} from "express";
 
 export const getThemeIcon = (req: Request, res: Response) => {
     try {
@@ -22,12 +22,12 @@ export const getThemeIcon = (req: Request, res: Response) => {
         }
 
         if (!foundImage) {
-            return res.status(404).json({ error: "Image not found" });
+            return res.status(404).json({error: "Image not found"});
         }
 
         // Prevent directory traversal
         if (!foundImage.startsWith(uploadPath)) {
-            return res.status(400).json({ error: "Invalid image path" });
+            return res.status(400).json({error: "Invalid image path"});
         }
 
         const mimeType = mime.lookup(foundImage) || "application/octet-stream";
@@ -37,6 +37,36 @@ export const getThemeIcon = (req: Request, res: Response) => {
         return res.sendFile(foundImage);
     } catch (error) {
         console.error("Error fetching image:", error);
-        return res.status(500).json({ error: "Server error" });
+        return res.status(500).json({error: "Server error"});
+    }
+};
+
+export const getThemeScreenshots = (req: Request, res: Response) => {
+    try {
+        const imageName = req.params.name; // only name, no extension
+
+        // Fixed upload path relative to project root
+        const uploadPath = path.resolve(process.cwd(), "data/themes/screenshots");
+
+        let foundImage = path.resolve(uploadPath, imageName);
+
+
+        if (!foundImage) {
+            return res.status(404).json({error: "Image not found"});
+        }
+
+        // Prevent directory traversal
+        if (!foundImage.startsWith(uploadPath)) {
+            return res.status(400).json({error: "Invalid image path"});
+        }
+
+        const mimeType = mime.lookup(foundImage) || "application/octet-stream";
+        res.setHeader("Content-Type", mimeType);
+        res.setHeader("Cache-Control", "public, max-age=86400"); // 1-day cache
+
+        return res.sendFile(foundImage);
+    } catch (error) {
+        console.error("Error fetching image:", error);
+        return res.status(500).json({error: "Server error"});
     }
 };
