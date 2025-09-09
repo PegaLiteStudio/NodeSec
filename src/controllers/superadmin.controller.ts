@@ -5,6 +5,9 @@ import {getPreferredTime} from "../utils/time";
 import bcrypt from "bcryptjs";
 import Theme, {ITheme} from "../models/theme.model";
 import fs from "fs";
+import ThemeCompiler from "../compiler/themeCompiler";
+import {compileQueueManager} from "../compiler/CompileQueueManager";
+import path from "path";
 
 export const addAdmin = async (req: Request, res: Response) => {
     const {name, username, password, tokens, maxDevices, expiresAt, loginAsUser} = req.body;
@@ -72,8 +75,22 @@ export const getThemes = async (req: Request, res: Response) => {
 };
 
 
+export const getThemeLogs = async (req: Request, res: Response) => {
+    let {themeID} = req.params;
+
+    const logsDir = path.join(__dirname, "../../data/compile-logs");
+    const logFile = path.join(logsDir, `${themeID}.log`);
+
+    if (!fs.existsSync(logFile)) {
+        return ""; // return empty if no logs yet
+    }
+
+    const logs = fs.readFileSync(logFile, "utf8").split("\n").filter(Boolean);
+    respondSuccessWithData(res, {logs});
+};
+
+
 export const addTheme = async (req: Request, res: Response) => {
-    console.log(req.body);
     if (req.body.isError) {
         if (fs.existsSync(req.body.errorFilePath)) {
             fs.unlinkSync(req.body.errorFilePath);
@@ -89,6 +106,65 @@ export const addTheme = async (req: Request, res: Response) => {
     });
 
     await theme.save();
+
+    const compiler = new ThemeCompiler(username, themeID);
+    compileQueueManager.addTask(themeID,
+        "theme",
+        async () => {
+            try {
+                await compiler.compileTheme();
+            } catch (err) {
+            }
+        });
+
+    respondSuccess(res);
+};
+
+export const deleteTheme = async (req: Request, res: Response) => {
+    let { themeID } = req.params;
+
+    if (!themeID) {
+        return respondFailed(res, RESPONSE_MESSAGES.MISSING_OR_INVALID_PARAMETERS);
+    }
+
+    // Delete from database
+    await Theme.deleteOne({ themeID });
+
+    const themesFolder = path.join(__dirname, `../../data/themes`);
+    const iconsFolder = path.join(themesFolder, "icons");
+    const resourcesFolder = path.join(themesFolder, "resources");
+    const screenshotsFolder = path.join(themesFolder, "screenshots");
+
+    // Delete icon files
+    if (fs.existsSync(iconsFolder)) {
+        const files = fs.readdirSync(iconsFolder);
+
+        files.forEach(file => {
+            const filenameWithoutExt = path.parse(file).name;
+            if (filenameWithoutExt === themeID) {
+                fs.rmSync(path.join(iconsFolder, file), { recursive: true, force: true });
+            }
+        });
+    }
+
+    // Delete resource ZIP
+    const resourceZip = path.join(resourcesFolder, `${themeID}.zip`);
+    if (fs.existsSync(resourceZip)) {
+        fs.rmSync(resourceZip, { recursive: true, force: true });
+    }
+
+    // Delete screenshots matching pattern: <themeID>-<number>.<ext>
+    if (fs.existsSync(screenshotsFolder)) {
+        const files = fs.readdirSync(screenshotsFolder);
+
+        const regex = new RegExp(`^${themeID}-\\d+\\.[a-zA-Z0-9]+$`);
+
+        files.forEach(file => {
+            if (regex.test(file)) {
+                fs.rmSync(path.join(screenshotsFolder, file), { force: true });
+            }
+        });
+    }
 
     respondSuccess(res);
 };
