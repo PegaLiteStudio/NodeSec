@@ -6,6 +6,7 @@ export interface ITheme extends Document {
     themeID: string;
     usage: number;
     status: "incomplete" | "active" | "inactive" | "error" | "pending" | string;
+    variables: string[];
     createdBy: string;
     createdAt: string;
 }
@@ -30,6 +31,10 @@ const themeSchema = new Schema<ITheme>({
         enum: ["incomplete", "active", "inactive", "error", "pending"],
         default: "incomplete",
         required: true
+    },
+    variables: {
+        type: [String],
+        default: []
     },
     createdBy: {
         type: String,

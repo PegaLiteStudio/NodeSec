@@ -51,7 +51,7 @@ export const superAdminSessionLogin = async (req: Request, res: Response) => {
     if (doc.status !== "active") {
         return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_BANNED)
     }
-    respondSuccess(res)
+    respondSuccessWithData(res, {username})
 };
 
 // Admin Login

@@ -31,7 +31,7 @@ class ThemeCompiler {
     addLog(message: string) {
         console.log(message);
         if (connectedUsers[this.adminID]) {
-            io.to(connectedUsers[this.adminID]).emit("theme-log", message)
+            io.to(connectedUsers[this.adminID]).emit("theme-log-" + this.themeID, message)
         }
         const logsDir = path.join(__dirname, "../../data/compile-logs");
         const logFile = path.join(logsDir, `${this.themeID}.log`);
@@ -351,7 +351,7 @@ class ThemeCompiler {
     }
 
     private async cleanUp() {
-        fs.rmSync(path.join(this.tempFolder), {recursive: true, force: true});
+        // fs.rmSync(path.join(this.tempFolder), {recursive: true, force: true});
     }
 
     async compileTheme() {

@@ -12,7 +12,9 @@ router.use(protect); // JWT middleware
 router.use(authorizeRoles('super-admin'));
 router.get('/admins', superAdminCtrl.getAllAdmins);
 router.get('/themes', superAdminCtrl.getThemes);
+router.get('/theme-logs/:themeID', superAdminCtrl.getThemeLogs);
 router.post('/add-admin', validate(addAdminSchema), superAdminCtrl.addAdmin);
+router.post('/delete-theme/:themeID', superAdminCtrl.deleteTheme);
 router.post('/add-theme', themeUpload.fields([
     {name: "themeIcon", maxCount: 1},
     {name: "themeResource", maxCount: 1},

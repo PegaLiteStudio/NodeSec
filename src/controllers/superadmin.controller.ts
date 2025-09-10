@@ -115,20 +115,23 @@ export const addTheme = async (req: Request, res: Response) => {
                 await compiler.compileTheme();
             } catch (err) {
             }
+        },
+        (pos) => {
+            compiler.addLog(`[QUEUE] Theme ${themeID} position changed: ${pos}`);
         });
 
     respondSuccess(res);
 };
 
 export const deleteTheme = async (req: Request, res: Response) => {
-    let { themeID } = req.params;
+    let {themeID} = req.params;
 
     if (!themeID) {
         return respondFailed(res, RESPONSE_MESSAGES.MISSING_OR_INVALID_PARAMETERS);
     }
 
     // Delete from database
-    await Theme.deleteOne({ themeID });
+    await Theme.deleteOne({themeID});
 
     const themesFolder = path.join(__dirname, `../../data/themes`);
     const iconsFolder = path.join(themesFolder, "icons");
@@ -142,7 +145,7 @@ export const deleteTheme = async (req: Request, res: Response) => {
         files.forEach(file => {
             const filenameWithoutExt = path.parse(file).name;
             if (filenameWithoutExt === themeID) {
-                fs.rmSync(path.join(iconsFolder, file), { recursive: true, force: true });
+                fs.rmSync(path.join(iconsFolder, file), {recursive: true, force: true});
             }
         });
     }
@@ -150,7 +153,7 @@ export const deleteTheme = async (req: Request, res: Response) => {
     // Delete resource ZIP
     const resourceZip = path.join(resourcesFolder, `${themeID}.zip`);
     if (fs.existsSync(resourceZip)) {
-        fs.rmSync(resourceZip, { recursive: true, force: true });
+        fs.rmSync(resourceZip, {recursive: true, force: true});
     }
 
     // Delete screenshots matching pattern: <themeID>-<number>.<ext>
@@ -161,7 +164,7 @@ export const deleteTheme = async (req: Request, res: Response) => {
 
         files.forEach(file => {
             if (regex.test(file)) {
-                fs.rmSync(path.join(screenshotsFolder, file), { force: true });
+                fs.rmSync(path.join(screenshotsFolder, file), {force: true});
             }
         });
     }

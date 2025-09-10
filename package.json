@@ -15,6 +15,7 @@
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "express-rate-limit": "^8.0.1",
+    "fs-extra": "^11.3.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "mime-types": "^3.0.1",
@@ -22,19 +23,23 @@
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
     "socket.io": "^4.8.1",
+    "unzipper": "^0.12.3",
     "zod": "^4.0.15"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
+    "@types/fs-extra": "^11.0.4",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/mime-types": "^3.0.1",
     "@types/morgan": "^1.9.10",
     "@types/multer": "^2.0.0",
     "@types/node": "^24.1.0",
     "@types/socket.io": "^3.0.2",
+    "@types/unzipper": "^0.10.11",
+    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.5.3"
+    "typescript": "^5.9.2"
   },
   "private": true
 }

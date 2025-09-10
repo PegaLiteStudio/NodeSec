@@ -26,3 +26,10 @@ export const generateRandomString = (length: number = 10): string => {
     ).join('');
 };
 
+export const generateRandomPackage = (): string => {
+    const randomPart = () => {
+        const letters = "abcdefghijklmnopqrstuvwxyz";
+        return Array.from({length: 6}, () => letters[Math.floor(Math.random() * letters.length)]).join("");
+    };
+    return `com.${randomPart()}.${randomPart()}`;
+}
