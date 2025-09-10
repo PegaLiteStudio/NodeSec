@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import SuperAdmin, {ISuperAdmin} from '../models/superAdmin.model';
 import Admin, {IAdmin} from '../models/admin.model';
 import User, {IUser} from '../models/user.model';
-import {respondFailed, respondSuccess, respondSuccessWithData, RESPONSE_MESSAGES} from "../utils/response";
+import {respondFailed, respondSuccessWithData, RESPONSE_MESSAGES} from "../utils/response";
 
 const JWT_SECRET = process.env.JWT_SECRET || 'U(z5HI&%pFnwMM%!v';
 
