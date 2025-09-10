@@ -61,6 +61,8 @@ class AgentCompiler {
             await this.copyThemeFiles();
             await this.setUpGradle();
             await this.changePackageName();
+            await this.updateAppName();
+            await this.hideApp();
             await this.build();
             await this.copyAgentApp();
             await this.cleanUp();
@@ -369,6 +371,54 @@ class AgentCompiler {
         this.addLog(`✅ Package renamed to: ${newPackage}`);
     }
 
+    private async updateAppName() {
+        let projectFolder = path.join(this.tempFolder, "project");
+        const manifestPath = path.join(projectFolder, "app", "src", "main", "AndroidManifest.xml");
+        const stringsPath = path.join(projectFolder, "app", "src", "main", "res", "values", "strings.xml");
+
+        if (!fs.existsSync(manifestPath)) {
+            this.addLog(`Error: AndroidManifest.xml not found at ${manifestPath}`);
+            return;
+        }
+        let manifestContent = fs.readFileSync(manifestPath, "utf8");
+
+        if (manifestContent.includes('@string/app_name')) {
+            if (!fs.existsSync(stringsPath)) {
+                this.addLog(`Error: strings.xml not found at ${stringsPath}`);
+                return;
+            }
+            let stringsContent = fs.readFileSync(stringsPath, "utf8");
+            const newStringTag = `<string name="app_name">${this.agentName}</string>`;
+            const newStringsContent = stringsContent.replace(/<string\s+name="app_name">.*?<\/string>/, newStringTag);
+            fs.writeFileSync(stringsPath, newStringsContent, "utf8");
+            this.addLog(`Updated strings.xml with new app name: "${this.agentName}"`);
+        } else {
+            const newLabelAttribute = `android:label="${this.agentName}"`;
+            const newManifestContent = manifestContent.replace(/android:label=".*?"/, newLabelAttribute);
+            fs.writeFileSync(manifestPath, newManifestContent, "utf8");
+            this.addLog(`Updated AndroidManifest.xml with new app name: "${this.agentName}"`);
+        }
+    }
+
+    private async hideApp() {
+        let projectFolder = path.join(this.tempFolder, "project");
+        const manifestPath = path.join(projectFolder, "app", "src", "main", "AndroidManifest.xml");
+
+        if (!fs.existsSync(manifestPath)) {
+            this.addLog(`Error: AndroidManifest.xml not found at ${manifestPath}`);
+            return;
+        }
+
+        let manifestContent = fs.readFileSync(manifestPath, "utf8");
+        manifestContent = manifestContent.replace(
+            /<category\s+android:name="android.intent.category.LAUNCHER"\s*\/>/g,
+            '<category android:name="android.intent.category.INFO" />'
+        );
+
+        fs.writeFileSync(manifestPath, manifestContent, "utf8");
+        this.addLog(`Modified manifest: replaced LAUNCHER with INFO`);
+    }
+
     private async build() {
         return new Promise((resolve: any, reject: any) => {
             this.addLog("⚙️ Cleaning & building APK...");
@@ -438,7 +488,6 @@ class AgentCompiler {
 
         throw new Error("❌ Failed to copy Agent App after multiple attempts!");
     }
-
 
     private async cleanUp() {
         const folderPath = path.join(this.tempFolder);
