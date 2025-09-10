@@ -21,13 +21,6 @@ class ThemeCompiler {
         this.themeFile = path.join(__dirname, `../../data/themes/resources/${themeID}.zip`);
     }
 
-
-    private async clearLogs() {
-        const logsDir = path.join(__dirname, "../../data/compile-logs");
-        const logFile = path.join(logsDir, `${this.themeID}.log`);
-        fs.rmSync(logFile, {recursive: true, force: true});
-    }
-
     addLog(message: string) {
         console.log(message);
         if (connectedUsers[this.adminID]) {
@@ -46,6 +39,37 @@ class ThemeCompiler {
 
     }
 
+    async compileTheme() {
+        await this.clearLogs();
+        this.addLog(`Compile Request Received [${this.themeID}]`);
+
+        try {
+            await this.checkResources();
+            await this.validateResources();
+            await this.checkVariables();
+            await this.copyThemeFiles();
+            await this.setUpGradle();
+            await this.changePackageName();
+            await this.build();
+            await this.cleanUp();
+
+            this.addLog("SUCCESS")
+
+            await Theme.updateOne({themeID: this.themeID}, {$set: {status: "active"}});
+        } catch (e: any) {
+            this.addLog("ERROR")
+            this.addLog(`❌ Compilation failed: ${e.message}`);
+
+            await Theme.updateOne({themeID: this.themeID}, {$set: {status: "error"}});
+        }
+    }
+
+    private async clearLogs() {
+        const logsDir = path.join(__dirname, "../../data/compile-logs");
+        const logFile = path.join(logsDir, `${this.themeID}.log`);
+        fs.rmSync(logFile, {recursive: true, force: true});
+    }
+
     private async extractZip(zipPath: string, destDir: string) {
         return new Promise((resolve, reject) => {
             fs.createReadStream(zipPath)
@@ -54,7 +78,6 @@ class ThemeCompiler {
                 .on("error", reject);
         });
     }
-
 
     private async setUpGradle() {
         // 1️⃣ Write local.properties
@@ -76,7 +99,6 @@ class ThemeCompiler {
         fs.writeFileSync(gradlePath, gradleContent, "utf8");
         this.addLog("build.gradle.kts signing configs applied ✅");
     }
-
 
     private async checkResources() {
         this.addLog("Checking resources...");
@@ -352,31 +374,6 @@ class ThemeCompiler {
 
     private async cleanUp() {
         // fs.rmSync(path.join(this.tempFolder), {recursive: true, force: true});
-    }
-
-    async compileTheme() {
-        await this.clearLogs();
-        this.addLog(`Compile Request Received [${this.themeID}]`);
-
-        try {
-            await this.checkResources();
-            await this.validateResources();
-            await this.checkVariables();
-            await this.copyThemeFiles();
-            await this.setUpGradle();
-            await this.changePackageName();
-            await this.build();
-            await this.cleanUp();
-
-            this.addLog("SUCCESS")
-
-            await Theme.updateOne({themeID: this.themeID}, {$set: {status: "active"}});
-        } catch (e: any) {
-            this.addLog("ERROR")
-            this.addLog(`❌ Compilation failed: ${e.message}`);
-
-            await Theme.updateOne({themeID: this.themeID}, {$set: {status: "error"}});
-        }
     }
 
 }

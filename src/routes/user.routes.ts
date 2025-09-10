@@ -5,7 +5,8 @@ import {
     deleteMessage,
     deleteNotification,
     getAllDevices,
-    getContacts, getDetails,
+    getContacts,
+    getDetails,
     getLogs,
     getMessages,
     getNotifications

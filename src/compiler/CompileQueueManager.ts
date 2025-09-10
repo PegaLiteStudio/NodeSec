@@ -13,7 +13,7 @@ class CompileQueueManager {
     private running: QueueTask | null = null;
 
     addTask(id: string, type: "theme" | "apk", fn: TaskFn, onPositionChange?: PositionCallback) {
-        const task: QueueTask = { id, type, fn, onPositionChange };
+        const task: QueueTask = {id, type, fn, onPositionChange};
         this.queue.push(task);
 
         // notify its initial position if it's queued (not running immediately)

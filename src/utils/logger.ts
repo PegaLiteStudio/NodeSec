@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { getPreferredTime } from "./time";
+import {getPreferredTime} from "./time";
 
 /**
  * Writes a log line into data/logs/{deviceID}.log
@@ -11,7 +11,7 @@ export const writeDeviceLog = (deviceID: string, log: string, time: string = get
 
     // Ensure logs directory exists
     if (!fs.existsSync(logsDir)) {
-        fs.mkdirSync(logsDir, { recursive: true });
+        fs.mkdirSync(logsDir, {recursive: true});
     }
 
     const logLine = `[${time}] ${log}\n`;

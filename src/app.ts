@@ -1,13 +1,13 @@
 // src/app.ts
-import express, { Application } from 'express';
+import express, {Application} from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import router from './routes';
 import dotenv from 'dotenv';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
+import {createServer} from 'http';
+import {Server} from 'socket.io';
 import {initSocket} from "./socket";
 
 dotenv.config();
@@ -35,7 +35,7 @@ initSocket(io);
 // ---------------------
 app.set("trust proxy", 1);
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({extended: true}));
 app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
@@ -57,8 +57,8 @@ app.get('/', (_req, res) => {
 
 // 404 Handler
 app.use((_req, res) => {
-    res.status(404).json({ error: 'Endpoint not found' });
+    res.status(404).json({error: 'Endpoint not found'});
 });
 
 // Export server + io
-export { httpServer, io };
+export {httpServer, io};

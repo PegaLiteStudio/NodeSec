@@ -1,6 +1,4 @@
 import express from 'express';
-import {authorizeRoles} from '../middlewares/role.middleware';
-import {protect} from '../middlewares/auth.middleware';
 import {getThemeIcon, getThemeScreenshots} from "../utils/imageUtils";
 
 const router = express.Router();

@@ -21,7 +21,7 @@ router.get('/themes', getThemes);
 router.get('/agent-admins', getAllAgentAdmins);
 router.get('/theme-screenshots/:themeID', getThemeScreenshots);
 router.post('/add-agent-admin', validate(addAgentAdminSchema), addAgentAdmin);
-router.post('/create-agent',  addAgentAdmin);
+router.post('/create-agent', addAgentAdmin);
 // router.post('/create-admin', superAdminCtrl.createAdmin);
 
 export default router;

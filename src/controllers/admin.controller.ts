@@ -49,12 +49,12 @@ export const getThemeScreenshots = async (req: Request, res: Response) => {
         });
     }
 
-        respondSuccessWithData(res, {screenshotIds});
+    respondSuccessWithData(res, {screenshotIds});
 
 };
 
 export const addAgentAdmin = async (req: Request, res: Response) => {
-    const {name, username, password,expiry} = req.body;
+    const {name, username, password, expiry} = req.body;
 
     let doc: IUser | null = await User.findOne({username});
     if (doc) {

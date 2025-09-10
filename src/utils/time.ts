@@ -17,4 +17,4 @@ const getTime = (date: Date): string => {
     return indianDateTimeFormatter.format(date);
 };
 
-export { getPreferredTime };
+export {getPreferredTime};
