@@ -7,8 +7,10 @@ export interface IAgent extends Document {
     adminID: string;
     maxDevices: number;
     totalDevices: number;
-    theme: string;
-    status: "active" | "suspended"; // -> Once the app gets suspended, it can never be live again
+    themeID: string;
+    forbiddenActions: object;
+    variableData: object;
+    status: "active" | "pending" | "error" | "suspended"; // -> Once the app gets suspended, it can never be live again
     createdBy: string;
     createdAt: string;
 }
@@ -30,14 +32,22 @@ const userSchema = new Schema<IAgent>({
         type: String,
         required: true,
     },
-    theme: {
+    themeID: {
         type: String,
     },
     status: {
         type: String,
-        enum: ["active", "suspended"],
-        default: "active",
+        enum: ["active", "suspended", "pending", "error"],
+        default: "pending",
         required: true
+    },
+    forbiddenActions: {
+        type: Schema.Types.Mixed,
+        default: {}
+    },
+    variableData: {
+        type: Schema.Types.Mixed,
+        default: {}
     },
     maxDevices: {
         type: Number,

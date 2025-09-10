@@ -92,7 +92,7 @@ export const adminSessionLogin = async (req: Request, res: Response) => {
         return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_BANNED)
     }
 
-    respondSuccess(res);
+    respondSuccessWithData(res, {username});
 
 };
 

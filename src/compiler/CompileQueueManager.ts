@@ -60,7 +60,7 @@ class CompileQueueManager {
             console.error(`[QUEUE] Failed ${task.type} task: ${task.id}`, err);
         } finally {
             this.running = null;
-            this.emitPositions(); // update queue after finishing
+            // this.emitPositions(); // update queue after finishing
             this.runNext().catch(err => console.error("Queue runNext error:", err));
         }
     }

@@ -1,11 +1,17 @@
 import {Request, Response} from "express";
 import {respondFailed, respondSuccess, respondSuccessWithData, RESPONSE_MESSAGES} from "../utils/response";
-import Agent from "../models/agent.model";
+import Agent, {IAgent} from "../models/agent.model";
 import Theme from "../models/theme.model";
 import path from "path";
 import fs from "fs";
 import User, {IUser} from "../models/user.model";
 import {getPreferredTime} from "../utils/time";
+import {generateRandomPackage} from "../utils/randomUtils";
+import AgentCompiler from "../compiler/agentCompiler";
+import {compileQueueManager} from "../compiler/CompileQueueManager";
+import Admin from "../models/admin.model";
+import SuperAdmin from "../models/superAdmin.model";
+import bcrypt from "bcryptjs";
 
 export const getAllAgents = async (req: Request, res: Response) => {
     let {username} = req.user;
@@ -56,8 +62,13 @@ export const getThemeScreenshots = async (req: Request, res: Response) => {
 export const addAgentAdmin = async (req: Request, res: Response) => {
     const {name, username, password, expiry} = req.body;
 
-    let doc: IUser | null = await User.findOne({username});
-    if (doc) {
+    const [doc, doc2, doc3] = await Promise.all([
+        User.findOne({username}),
+        SuperAdmin.findOne({username}),
+        Admin.findOne({username})
+    ]);
+
+    if (doc || doc2 || doc3) {
         return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_EXISTS)
     }
 
@@ -74,3 +85,111 @@ export const addAgentAdmin = async (req: Request, res: Response) => {
     respondSuccess(res);
 };
 
+export const createAgent = async (req: Request, res: Response) => {
+    const {themeID, forbiddenActions, adminID, agentName, variableData} = req.body;
+
+    let agentID: string = generateRandomPackage();
+
+    const createdBy = req.user.username;
+    let doc = new Agent({
+        agentName,
+        agentID,
+        adminID,
+        themeID,
+        forbiddenActions,
+        variableData,
+        createdBy,
+        createdAt: getPreferredTime()
+    });
+    await doc.save();
+
+    const compiler = new AgentCompiler(agentID, agentName, createdBy, themeID, forbiddenActions, variableData);
+    compileQueueManager.addTask(agentID,
+        "apk",
+        async () => {
+            try {
+                await compiler.compileAgent();
+            } catch (err) {
+            }
+        },
+        (pos) => {
+            compiler.addLog(`[QUEUE] Agent ${agentName} position changed: ${pos}`);
+        });
+
+    respondSuccessWithData(res, {
+        agentID, agentName, themeID
+    });
+}
+
+export const getAgentDetails = async (req: Request, res: Response) => {
+    const {agentID} = req.params;
+
+    const agent: IAgent | null = await Agent.findOne({agentID}).lean();
+    if (!agent) {
+        return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_NOT_EXISTS);
+    }
+
+    if (agent.status === "pending" || agent.status === "error") {
+        const logsDir = path.join(__dirname, "../../data/compile-logs");
+        const logFile = path.join(logsDir, `${agentID}.log`);
+
+        let logs: string[] = ["NO LOGS"];
+        if (fs.existsSync(logFile)) {
+            logs = fs.readFileSync(logFile, "utf8").split("\n").filter(Boolean);
+        }
+        return respondSuccessWithData(res, {logs, agent});
+    }
+
+    respondSuccessWithData(res, {agent});
+
+}
+
+export const downloadAgentApp = async (req: Request, res: Response) => {
+    try {
+        const {agentID} = req.params;
+        const appPath = path.join(__dirname, "../../data/agents", `${agentID}.apk`);
+
+        // Check if the file exists
+        if (!fs.existsSync(appPath)) {
+            return res.status(404).json({success: false, message: "App file not found"});
+        }
+
+        // Trigger file download
+        res.download(appPath, `${agentID}.app`, (err) => {
+            if (err) {
+                console.error("Error sending file:", err);
+                if (!res.headersSent) {
+                    res.status(500).json({success: false, message: "Error downloading file"});
+                }
+            }
+        });
+    } catch (error) {
+        console.error("Download error:", error);
+        res.status(500).json({success: false, message: "Internal server error"});
+    }
+}
+
+export const getAgentAdminDetails = async (req: Request, res: Response) => {
+    const {username} = req.body;
+    const user = await User.findOne({username}).lean();
+    if (!user) {
+        return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_NOT_EXISTS);
+    }
+    respondSuccessWithData(res, user);
+};
+
+
+export const saveAgentAdminChanges = async (req: Request, res: Response) => {
+    const {username, changes} = req.body;
+    const admin = await User.findOne({username}).lean();
+    if (!admin) {
+        return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_NOT_EXISTS);
+    }
+    if (changes.password) {
+        const salt = await bcrypt.genSalt(10);
+        changes.password = await bcrypt.hash(changes.password, salt);
+    }
+    await User.updateOne({username}, {$set: changes});
+
+    respondSuccess(res);
+};

@@ -48,6 +48,6 @@ userSchema.pre<ISuperAdmin>('save', async function (next) {
     next();
 });
 
-const User = mongoose.model<ISuperAdmin>('SuperAdmins', userSchema);
+const SuperAdmin = mongoose.model<ISuperAdmin>('SuperAdmins', userSchema);
 
-export default User;
+export default SuperAdmin;

@@ -21,7 +21,7 @@ class ThemeCompiler {
         this.themeFile = path.join(__dirname, `../../data/themes/resources/${themeID}.zip`);
     }
 
-    addLog(message: string) {
+    public addLog(message: string) {
         console.log(message);
         if (connectedUsers[this.adminID]) {
             io.to(connectedUsers[this.adminID]).emit("theme-log-" + this.themeID, message)
@@ -346,7 +346,7 @@ class ThemeCompiler {
             this.addLog("⚙️ Cleaning & building APK...");
             const gradleCommand = process.platform === "win32" ? "gradlew.bat" : "./gradlew";
 
-            const buildProcess = spawn(gradleCommand, ["clean", "assembleRelease"], {
+            const buildProcess = spawn(gradleCommand, ["clean", "assembleRelease", "--no-daemon"], {
                 cwd: path.join(this.tempFolder, "project"),
                 shell: true,
             });
@@ -372,9 +372,28 @@ class ThemeCompiler {
         });
     }
 
+
     private async cleanUp() {
-        // fs.rmSync(path.join(this.tempFolder), {recursive: true, force: true});
+        const folderPath = path.join(this.tempFolder);
+        const maxRetryTime = 15000; // 15 seconds
+        const retryInterval = 1000;  // retry every 0.5 seconds
+        let elapsedTime = 0;
+
+        while (elapsedTime < maxRetryTime) {
+            try {
+                await fsExtra.remove(folderPath);
+                this.addLog("🧹 Project folder cleaned up.");
+                return; // success, exit the function
+            } catch (err: any) {
+                this.addLog(`⚠️ Cleanup failed, retrying...`);
+                await new Promise(res => setTimeout(res, retryInterval));
+                elapsedTime += retryInterval;
+            }
+        }
+
+        this.addLog("❌ Failed to clean project folder after 15 seconds.");
     }
+
 
 }
 

@@ -1,6 +1,5 @@
 import {Request, Response} from "express";
 import {respondFailed, respondSuccess, respondSuccessWithData, RESPONSE_MESSAGES} from "../utils/response";
-import AdminModel, {IAdmin} from "../models/admin.model";
 import {getPreferredTime} from "../utils/time";
 import bcrypt from "bcryptjs";
 import Theme, {ITheme} from "../models/theme.model";
@@ -8,16 +7,23 @@ import fs from "fs";
 import ThemeCompiler from "../compiler/themeCompiler";
 import {compileQueueManager} from "../compiler/CompileQueueManager";
 import path from "path";
+import User from "../models/user.model";
+import SuperAdmin from "../models/superAdmin.model";
+import Admin, {IAdmin} from "../models/admin.model";
 
 export const addAdmin = async (req: Request, res: Response) => {
     const {name, username, password, tokens, maxDevices, expiresAt, loginAsUser} = req.body;
 
-    let doc: IAdmin | null = await AdminModel.findOne({username});
-    if (doc) {
+    const [doc, doc2, doc3] = await Promise.all([
+        User.findOne({username}),
+        SuperAdmin.findOne({username}),
+        Admin.findOne({username})
+    ]);
+    if (doc || doc2 || doc3) {
         return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_EXISTS)
     }
 
-    let admin: IAdmin = new AdminModel({
+    let admin: IAdmin = new Admin({
         name,
         username,
         password,
@@ -36,7 +42,7 @@ export const addAdmin = async (req: Request, res: Response) => {
 
 export const getAllAdmins = async (req: Request, res: Response) => {
     let {username} = req.user;
-    const admins = await AdminModel.find({"createdBy": username}).lean();
+    const admins = await Admin.find({"createdBy": username}).lean();
 
     respondSuccessWithData(res, admins);
 };
@@ -44,7 +50,7 @@ export const getAllAdmins = async (req: Request, res: Response) => {
 
 export const getAdminDetails = async (req: Request, res: Response) => {
     const {username} = req.body;
-    const admin = await AdminModel.findOne({username}).lean();
+    const admin = await Admin.findOne({username}).lean();
     if (!admin) {
         return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_NOT_EXISTS);
     }
@@ -53,7 +59,7 @@ export const getAdminDetails = async (req: Request, res: Response) => {
 
 export const saveAdminChanges = async (req: Request, res: Response) => {
     const {username, changes} = req.body;
-    const admin = await AdminModel.findOne({username}).lean();
+    const admin = await Admin.findOne({username}).lean();
     if (!admin) {
         return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_NOT_EXISTS);
     }
@@ -61,7 +67,7 @@ export const saveAdminChanges = async (req: Request, res: Response) => {
         const salt = await bcrypt.genSalt(10);
         changes.password = await bcrypt.hash(changes.password, salt);
     }
-    await AdminModel.updateOne({username}, {$set: changes});
+    await Admin.updateOne({username}, {$set: changes});
 
     respondSuccess(res);
 };
@@ -81,11 +87,10 @@ export const getThemeLogs = async (req: Request, res: Response) => {
     const logsDir = path.join(__dirname, "../../data/compile-logs");
     const logFile = path.join(logsDir, `${themeID}.log`);
 
-    if (!fs.existsSync(logFile)) {
-        return ""; // return empty if no logs yet
+    let logs: string[] = ["LOGS_DELETED"];
+    if (fs.existsSync(logFile)) {
+        logs = fs.readFileSync(logFile, "utf8").split("\n").filter(Boolean);
     }
-
-    const logs = fs.readFileSync(logFile, "utf8").split("\n").filter(Boolean);
     respondSuccessWithData(res, {logs});
 };
 
