@@ -4,6 +4,7 @@ import * as path from "path";
 // Directories you want to ensure exist
 const requiredDirs: string[] = [
     "data",
+    "data/agents",
     "data/agent-logs",
     "data/compile-logs",
     "data/temp",
