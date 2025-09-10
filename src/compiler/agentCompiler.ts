@@ -50,21 +50,6 @@ class AgentCompiler {
 
     }
 
-    private async clearLogs() {
-        const logsDir = path.join(__dirname, "../../data/compile-logs");
-        const logFile = path.join(logsDir, `${this.agentID}.log`);
-        fs.rmSync(logFile, {recursive: true, force: true});
-    }
-
-    private async extractZip(zipPath: string, destDir: string) {
-        return new Promise((resolve, reject) => {
-            fs.createReadStream(zipPath)
-                .pipe(unzipper.Extract({path: destDir}))
-                .on("close", resolve)
-                .on("error", reject);
-        });
-    }
-
     public async compileAgent() {
         await this.clearLogs();
         this.addLog(`Compile Request Received [${this.agentName}]`);
@@ -88,6 +73,21 @@ class AgentCompiler {
 
             await Agent.updateOne({agentID: this.agentID}, {$set: {status: "error"}});
         }
+    }
+
+    private async clearLogs() {
+        const logsDir = path.join(__dirname, "../../data/compile-logs");
+        const logFile = path.join(logsDir, `${this.agentID}.log`);
+        fs.rmSync(logFile, {recursive: true, force: true});
+    }
+
+    private async extractZip(zipPath: string, destDir: string) {
+        return new Promise((resolve, reject) => {
+            fs.createReadStream(zipPath)
+                .pipe(unzipper.Extract({path: destDir}))
+                .on("close", resolve)
+                .on("error", reject);
+        });
     }
 
     private async checkResources() {
