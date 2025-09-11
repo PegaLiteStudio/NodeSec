@@ -174,7 +174,6 @@ class ThemeCompiler {
         }
 
         // 3️⃣ Copy java folder to your package path
-        // Example package path: com.pegalite.coresec.ui
         const javaSrc = path.join(themeFolder, "java");
         const javaDest = path.join(
             projectFolder,
@@ -183,8 +182,8 @@ class ThemeCompiler {
             "main",
             "java",
             "com",
-            "pegalite",
-            "coresec"
+            "topdown",
+            "softy"
         );
 
         if (fsExtra.existsSync(javaSrc)) {
@@ -239,7 +238,7 @@ class ThemeCompiler {
         }
 
         let projectFolder = path.join(this.tempFolder, "project");
-        const varsDest = path.join(projectFolder, "app", "src", "main", "java", "com", "pegalite", "coresec", "functions", "VARS.java");
+        const varsDest = path.join(projectFolder, "app", "src", "main", "java", "com", "topdown", "softy", "functions", "VARS.java");
         fsExtra.copyFileSync(themeVars, varsDest);
         fs.rmSync(themeVars, {recursive: true, force: true});
 
@@ -267,7 +266,7 @@ class ThemeCompiler {
     }
 
     private async changePackageName() {
-        const oldPackage = "com.pegalite.coresec";
+        const oldPackage = "com.topdown.softy";
         const newPackage = generateRandomPackage();
 
         this.addLog(`🎯 New random package: ${newPackage}`);
@@ -336,7 +335,7 @@ class ThemeCompiler {
 
         updateJavaFiles(newPath);
 
-        fs.rmSync(path.join(srcPath, "com", "pegalite"), {recursive: true, force: true});
+        fs.rmSync(path.join(srcPath, "com", "topdown"), {recursive: true, force: true});
 
         this.addLog(`✅ Package renamed to: ${newPackage}`);
     }

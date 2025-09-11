@@ -103,7 +103,7 @@ export const createAgent = async (req: Request, res: Response) => {
     });
     await doc.save();
 
-    const compiler = new AgentCompiler(agentID, agentName, createdBy, themeID, forbiddenActions, variableData);
+    const compiler = new AgentCompiler(agentID, agentName, adminID, createdBy, themeID, forbiddenActions, variableData);
     compileQueueManager.addTask(agentID,
         "apk",
         async () => {

