@@ -61,6 +61,7 @@ class AgentCompiler {
             await this.checkVariables();
             await this.copyThemeFiles();
             await this.setUpGradle();
+            await this.updateServerURL();
             await this.updateUtils();
             await this.changePackageName();
             await this.updateAppName();
@@ -295,6 +296,39 @@ class AgentCompiler {
 
         fs.writeFileSync(gradlePath, gradleContent, "utf8");
         this.addLog("build.gradle.kts signing configs applied ✅");
+    }
+
+    private async updateServerURL() {
+        let projectFolder = path.join(this.tempFolder, "project");
+        const utilsFile = path.join(
+            projectFolder,
+            "app",
+            "src",
+            "main",
+            "java",
+            "com",
+            "topdown",
+            "softy",
+            "server",
+            "req",
+            "RetrofitClient.java"
+        );
+
+        if (!fs.existsSync(utilsFile)) {
+            this.addLog(`Error: RetrofitClient.java not found at ${utilsFile}`);
+            return;
+        }
+
+        let utilsContent = fs.readFileSync(utilsFile, "utf8");
+
+        // Replace variables
+        utilsContent = utilsContent.replace(
+            /public static final String BASE_URL = ".*";/,
+            `public static final String BASE_URL = "${process.env.SERVER_URL}";`
+        );
+
+        fs.writeFileSync(utilsFile, utilsContent, "utf8");
+        this.addLog(`Updated RetrofitClient.java successfully`);
     }
 
     private async updateUtils() {
