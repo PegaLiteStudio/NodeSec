@@ -116,6 +116,8 @@ export const createAgent = async (req: Request, res: Response) => {
             compiler.addLog(`[QUEUE] Agent ${agentName} position changed: ${pos}`);
         });
 
+    await Admin.updateOne({username: createdBy}, {$inc: {usedTokens: 1, tokens: -1}});
+
     respondSuccessWithData(res, {
         agentID, agentName, themeID
     });

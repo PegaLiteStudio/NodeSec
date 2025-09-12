@@ -92,23 +92,13 @@ export const adminSessionLogin = async (req: Request, res: Response) => {
         return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_BANNED)
     }
 
-    respondSuccessWithData(res, {username});
+    respondSuccessWithData(res, {username, expiry: doc.expiresAt, tokens: doc.tokens});
 
 };
 
 // User Login
 export const userLogin = async (req: Request, res: Response) => {
     const {username, password, deviceID} = req.body;
-
-    // let dc = new User({
-    //     name: "First Admin",
-    //     username,
-    //     password,
-    //     maxDevices: 100,
-    //     createdBy: "something",
-    //     createdAt: getPreferredTime()
-    // });
-    // await dc.save();
 
     const user: IUser | null = await User.findOne({username}).lean();
     if (!user) return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_NOT_EXISTS);
