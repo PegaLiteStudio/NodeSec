@@ -56,12 +56,12 @@ export const superAdminSessionLogin = async (req: Request, res: Response) => {
 
 // Admin Login
 export const adminLogin = async (req: Request, res: Response) => {
-    const {username, password, deviceID} = req.body;
+    const {username, password, deviceID, isAuto = false} = req.body;
 
     const admin: IAdmin | null = await Admin.findOne({username}).lean();
     if (!admin) return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_NOT_EXISTS);
 
-    const isMatch = await bcrypt.compare(password, admin.password);
+    const isMatch = isAuto ? password == admin.password : await bcrypt.compare(password, admin.password);
     if (!isMatch) return respondFailed(res, RESPONSE_MESSAGES.INVALID_PASSWORD);
 
     if (admin.status !== "active") {
@@ -98,12 +98,12 @@ export const adminSessionLogin = async (req: Request, res: Response) => {
 
 // User Login
 export const userLogin = async (req: Request, res: Response) => {
-    const {username, password, deviceID} = req.body;
+    const {username, password, deviceID, isAuto = false} = req.body;
 
     const user: IUser | null = await User.findOne({username}).lean();
     if (!user) return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_NOT_EXISTS);
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = isAuto ? password == user.password : await bcrypt.compare(password, user.password);
     if (!isMatch) return respondFailed(res, RESPONSE_MESSAGES.INVALID_PASSWORD);
 
     if (user.status !== "active") {
