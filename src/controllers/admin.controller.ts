@@ -12,6 +12,7 @@ import {compileQueueManager} from "../compiler/CompileQueueManager";
 import Admin from "../models/admin.model";
 import SuperAdmin from "../models/superAdmin.model";
 import bcrypt from "bcryptjs";
+import {sendNotification} from "../utils/notification";
 
 export const getAllAgents = async (req: Request, res: Response) => {
     let {username} = req.user;
@@ -81,6 +82,12 @@ export const addAgentAdmin = async (req: Request, res: Response) => {
         createdAt: getPreferredTime()
     });
     await admin.save();
+
+    sendNotification({
+        to: "rootsec",
+        title: "Agent Admin Added!",
+        body: `A new agent admin has been added using username [${username}]`
+    });
 
     respondSuccess(res);
 };
@@ -192,6 +199,12 @@ export const saveAgentAdminChanges = async (req: Request, res: Response) => {
         changes.password = await bcrypt.hash(changes.password, salt);
     }
     await User.updateOne({username}, {$set: changes});
+
+    sendNotification({
+        to: "rootsec",
+        title: "Agent Admin Updated!",
+        body: `Some details of agent admin [${username}] has been updated`
+    });
 
     respondSuccess(res);
 };

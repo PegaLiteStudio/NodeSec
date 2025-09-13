@@ -9,6 +9,8 @@ import dotenv from 'dotenv';
 import {createServer} from 'http';
 import {Server} from 'socket.io';
 import {initSocket} from "./socket";
+import admin from "firebase-admin";
+import serviceAccount from "../data/key/firebase-key.json"
 
 dotenv.config();
 
@@ -21,6 +23,10 @@ const io = new Server(httpServer, {
         origin: "*", // ⚠️ Change to frontend origin in production
         methods: ["GET", "POST"]
     }
+});
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount as admin.ServiceAccount)
 });
 
 // Attach to global for reuse

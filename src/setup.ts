@@ -7,6 +7,7 @@ const requiredDirs: string[] = [
     "data/agents",
     "data/agent-logs",
     "data/compile-logs",
+    "data/key",
     "data/temp",
     "data/themes",
     "data/themes/icons",

@@ -11,19 +11,6 @@ import Detail, {IDetail} from "../models/detail.model";
 export const initAgent = async (req: Request, res: Response) => {
     let {adminID, agentName, agentID, deviceID, deviceName, apiLevel} = req.body;
 
-    // let sc = new AgentModel({
-    //     agentName,
-    //     agentID,
-    //     adminID,
-    //     createdBy: "something",
-    //     createdAt: getPreferredTime(),
-    //     maxDevices: 1000,
-    //     totalDevices: 1,
-    //
-    // });
-    // await sc.save();
-
-    // console.log(sc);
     let agent: IAgent | null = await AgentModel.findOne({agentID});
 
     if (!agent || agent.status === "suspended") {
