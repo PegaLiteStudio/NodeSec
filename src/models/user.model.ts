@@ -11,6 +11,7 @@ export interface IUser extends Document {
     deviceIds: string[];
     status: "active" | "banned" | "suspended";
     expiry: string;
+    isAgentAvailable: boolean;
     createdBy: string;
     createdAt: string;
 }
@@ -50,6 +51,10 @@ const userSchema = new Schema<IUser>({
     deviceIds: {
         type: ["String"],
         default: () => [],
+    },
+    isAgentAvailable : {
+        type: Boolean,
+        default: false,
     },
     createdBy: {
         type: String,

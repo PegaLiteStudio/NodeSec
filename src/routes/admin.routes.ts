@@ -10,10 +10,12 @@ import {
     getAllAgents,
     getThemes,
     getThemeScreenshots,
-    saveAgentAdminChanges
+    saveAgentAdminChanges,
+    uploadAgentApp
 } from "../controllers/admin.controller";
 import {validate} from "../middlewares/validateRequest";
 import {addAgentAdminSchema, saveChangesSchema} from "../validations/admin.validation";
+import {agentAppUpload} from "../multer/agentAppUpload";
 
 const router = express.Router();
 
@@ -29,5 +31,5 @@ router.post('/create-agent', createAgent);
 router.get('/agent-details/:agentID', getAgentDetails);
 router.post('/agent-admin', getAgentAdminDetails);
 router.post('/save-changes', validate(saveChangesSchema), saveAgentAdminChanges);
-
+router.post('/add-agent-app', agentAppUpload.single("agentApp"), uploadAgentApp);
 export default router;

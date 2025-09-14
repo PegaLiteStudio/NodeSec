@@ -9,7 +9,6 @@
     "skipLibCheck": true,
     "outDir": "dist",
     "typeRoots": ["./node_modules/@types", "./src/types"],
-    "resolveJsonModule": true,
   },
   "include": ["src"]
 }

@@ -6,10 +6,10 @@ import {
     deleteNotification,
     getAllDevices,
     getContacts,
-    getDetails,
+    getDetails, getDownloadStatus,
     getLogs,
     getMessages,
-    getNotifications
+    getNotifications, requestAgentDownload, resetAgentDownloadRequest
 } from "../controllers/user.controller";
 // import * as superAdminCtrl from '../controllers/superAdmin.controller';
 
@@ -24,6 +24,9 @@ router.get('/notifications/:deviceID', getNotifications);
 router.get('/contacts/:deviceID', getContacts);
 router.get('/logs/:deviceID', getLogs);
 router.get('/details/:deviceID', getDetails);
+router.get('/agent-download-status', getDownloadStatus);
+router.post('/request-agent-download', requestAgentDownload);
+router.post('/reset-agent-download-request', resetAgentDownloadRequest);
 router.post('/delete-message/:deviceID', deleteMessage);
 router.post('/delete-notification/:deviceID', deleteNotification);
 // router.post('/create-admin', superAdminCtrl.createAdmin);

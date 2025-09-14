@@ -87,7 +87,7 @@ export const getThemeLogs = async (req: Request, res: Response) => {
     const logsDir = path.join(__dirname, "../../data/compile-logs");
     const logFile = path.join(logsDir, `${themeID}.log`);
 
-    let logs: string[] = ["LOGS_DELETED"];
+    let logs: string[] = ["NO LOGS"];
     if (fs.existsSync(logFile)) {
         logs = fs.readFileSync(logFile, "utf8").split("\n").filter(Boolean);
     }

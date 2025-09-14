@@ -187,7 +187,6 @@ export const getAgentAdminDetails = async (req: Request, res: Response) => {
     respondSuccessWithData(res, user);
 };
 
-
 export const saveAgentAdminChanges = async (req: Request, res: Response) => {
     const {username, changes} = req.body;
     const admin = await User.findOne({username}).lean();
@@ -208,3 +207,11 @@ export const saveAgentAdminChanges = async (req: Request, res: Response) => {
 
     respondSuccess(res);
 };
+
+export const uploadAgentApp = async (req: Request, res: Response) => {
+    let username = req.body.username;
+
+    await User.updateOne({username}, {$set: {isAgentAvailable: true}});
+
+    respondSuccess(res);
+}

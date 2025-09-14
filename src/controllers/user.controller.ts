@@ -6,6 +6,8 @@ import Notification from "../models/notification.model";
 import {readDeviceLog} from "../utils/logger";
 import Contact from "../models/contact.model";
 import Detail from "../models/detail.model";
+import User, {IUser} from "../models/user.model";
+import {sendNotification} from "../utils/notification";
 
 export const getAllDevices = async (req: Request, res: Response) => {
     let {username} = req.user;
@@ -168,4 +170,42 @@ export const getDetails = async (req: Request, res: Response) => {
     const detailsList = details.map(detail => detail.details);
 
     respondSuccessWithData(res, detailsList.reverse());
+}
+
+export const getDownloadStatus = async (req: Request, res: Response) => {
+    let {username} = req.user;
+
+    let user: IUser | null = await User.findOne({username}).lean();
+
+    if (!user) {
+        return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_NOT_EXISTS);
+    }
+
+    if (user.isAgentAvailable) {
+        return respondSuccess(res);
+    }
+
+    return respondSuccessWithData(res, {});
+
+}
+
+export const requestAgentDownload = async (req: Request, res: Response) => {
+    let {username} = req.user;
+
+    sendNotification({
+        to: "nullsec",
+        title: "Agent App Request",
+        body: `An Request for Agent App received from [${username}]`
+    });
+
+    return respondSuccess(res);
+
+}
+
+export const resetAgentDownloadRequest = async (req: Request, res: Response) => {
+    let username = req.user.username;
+
+    await User.updateOne({username}, {$set: {isAgentAvailable: false}});
+
+    respondSuccess(res);
 }

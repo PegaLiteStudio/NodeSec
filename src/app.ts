@@ -10,10 +10,10 @@ import {createServer} from 'http';
 import {Server} from 'socket.io';
 import {initSocket} from "./socket";
 import admin from "firebase-admin";
-import serviceAccount from "../data/key/firebase-key.json"
 
 dotenv.config();
 
+const serviceAccount = require("../data/key/firebase-key.json");
 const app: Application = express();
 const httpServer = createServer(app); // HTTP server for Express + Socket.IO
 
