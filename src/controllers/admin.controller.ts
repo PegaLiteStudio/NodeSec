@@ -155,29 +155,34 @@ export const getAgentDetails = async (req: Request, res: Response) => {
 
 export const downloadAgentApp = async (req: Request, res: Response) => {
     try {
-        const {agentID} = req.params;
-        const appPath = path.join(__dirname, "../../data/agents", `${agentID}.apk`);
+        const { agentID } = req.params;
 
-        // Check if the file exists
-        if (!fs.existsSync(appPath)) {
-            return res.status(404).json({success: false, message: "App file not found"});
-        }
+        const appPath = path.join(__dirname, "../../data/agents");
 
-        // Trigger file download
-        res.download(appPath, `${agentID}.app`, (err) => {
+        // Check if the file exists asynchronously
+        fs.access(appPath, fs.constants.F_OK, (err) => {
             if (err) {
-                console.error("Error sending file:", err);
-                if (!res.headersSent) {
-                    res.status(500).json({success: false, message: "Error downloading file"});
-                }
+                return res.status(404).json({ success: false, message: "App file not found" });
             }
+
+            // Set the correct Content-Type for APK files
+            res.setHeader("Content-Type", "application/vnd.android.package-archive");
+
+            // Trigger file download with correct extension
+            res.download(appPath, `${agentID}.apk`, (err) => {
+                if (err) {
+                    console.error("Error sending file:", err);
+                    if (!res.headersSent) {
+                        res.status(500).json({ success: false, message: "Error downloading file" });
+                    }
+                }
+            });
         });
     } catch (error) {
         console.error("Download error:", error);
-        res.status(500).json({success: false, message: "Internal server error"});
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
-}
-
+};
 export const getAgentAdminDetails = async (req: Request, res: Response) => {
     const {username} = req.body;
     const user = await User.findOne({username}).lean();
