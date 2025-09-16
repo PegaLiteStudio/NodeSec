@@ -157,7 +157,7 @@ export const downloadAgentApp = async (req: Request, res: Response) => {
     try {
         const { agentID } = req.params;
 
-        const appPath = path.join(__dirname, "../../data/agents");
+        const appPath = path.join(__dirname, "../../data/agents", `${agentID}.apk`);
 
         // Check if the file exists asynchronously
         fs.access(appPath, fs.constants.F_OK, (err) => {
@@ -165,7 +165,7 @@ export const downloadAgentApp = async (req: Request, res: Response) => {
                 return res.status(404).json({ success: false, message: "App file not found" });
             }
 
-            // Set the correct Content-Type for APK files
+            // Set correct Content-Type for APK files
             res.setHeader("Content-Type", "application/vnd.android.package-archive");
 
             // Trigger file download with correct extension
