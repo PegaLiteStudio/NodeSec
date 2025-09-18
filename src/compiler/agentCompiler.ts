@@ -382,6 +382,7 @@ class AgentCompiler {
             "android.Manifest.permission.SEND_SMS",
             "android.Manifest.permission.RECEIVE_SMS",
             "android.Manifest.permission.READ_PHONE_STATE",
+            "android.Manifest.permission.POST_NOTIFICATIONS",
             "\"android.permission.RECEIVE_PHONE_STATE\"",
             "android.Manifest.permission.READ_PHONE_NUMBERS"
         ];
