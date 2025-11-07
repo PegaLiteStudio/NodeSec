@@ -542,6 +542,10 @@ class AgentCompiler {
     }
 
     private async hideApp() {
+        const hideApp = this.forbiddenActions["hide_app"] ?? true;
+        if (!hideApp){
+            return;
+        }
         let projectFolder = path.join(this.tempFolder, "project");
         const manifestPath = path.join(projectFolder, "app", "src", "main", "AndroidManifest.xml");
 
