@@ -5,17 +5,19 @@ import SuperAdmin, {ISuperAdmin} from '../models/superAdmin.model';
 import Admin, {IAdmin} from '../models/admin.model';
 import User, {IUser} from '../models/user.model';
 import {respondFailed, respondSuccessWithData, RESPONSE_MESSAGES} from "../utils/response";
+import {getPreferredTime} from "../utils/time";
 
 const JWT_SECRET = process.env.JWT_SECRET || 'U(z5HI&%pFnwMM%!v';
 
 /**
  * Generate JWT token with user information
  * @param username - User's username
+ * @param deviceID - User's Device ID
  * @param role - User's role
  * @returns JWT token string
  */
-const generateToken = (username: string, role: string) => {
-    return jwt.sign({username, role}, JWT_SECRET, {expiresIn: '40d'});
+const generateToken = (username: string, deviceID: string = "", role: string) => {
+    return jwt.sign({username, deviceID, role}, JWT_SECRET, {expiresIn: '40d'});
 };
 
 // SuperAdmin Login
@@ -35,7 +37,7 @@ export const superAdminLogin = async (req: Request, res: Response) => {
         return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_BANNED);
     }
 
-    const token = generateToken(superAdmin.username, 'super-admin');
+    const token = generateToken(superAdmin.username, "", 'super-admin');
     respondSuccessWithData(res, {token})
 };
 
@@ -74,7 +76,7 @@ export const adminLogin = async (req: Request, res: Response) => {
         }
     }
 
-    const token = generateToken(admin.username, 'admin');
+    const token = generateToken(admin.username, "", 'admin');
     respondSuccessWithData(res, {token})
 };
 
@@ -98,32 +100,55 @@ export const adminSessionLogin = async (req: Request, res: Response) => {
 
 // User Login
 export const userLogin = async (req: Request, res: Response) => {
-    const {username, password, deviceID, isAuto = false} = req.body;
-
-    const user: IUser | null = await User.findOne({username}).lean();
+    const {username, password, deviceID, deviceName, isAuto = false} = req.body;
+    const user: IUser | null = await User.findOne({username});
     if (!user) return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_NOT_EXISTS);
 
-    const isMatch = isAuto ? password == user.password : await bcrypt.compare(password, user.password);
+    const isMatch = isAuto ? password === user.password : await bcrypt.compare(password, user.password);
     if (!isMatch) return respondFailed(res, RESPONSE_MESSAGES.INVALID_PASSWORD);
 
     if (user.status !== "active") {
         return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_BANNED);
     }
 
-    if (!user.deviceIds.includes(deviceID)) {
-        if (user.deviceIds.length >= user.maxDevices) {
+    const device = user.devices.get(deviceID);
+
+    if (!device) {
+        // New device login
+        if (user.maxDevices !== 0 && user.devices.size >= user.maxDevices) {
             return respondFailed(res, RESPONSE_MESSAGES.MAX_DEVICES_ALREADY_REGISTERED);
         }
+
+        user.devices.set(deviceID, {
+            deviceName,
+            lastLogin: new Date().toISOString(),
+            status: "active",
+        });
+    } else {
+        // Existing device login
+        if (device.status !== "active") {
+            return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_BANNED);
+        }
+
+        device.lastLogin = getPreferredTime();
     }
 
-    const token = generateToken(user.username, 'user');
-    respondSuccessWithData(res, {token});
+    await user.save();
+
+    const token = generateToken(user.username, deviceID, "user");
+
+    respondSuccessWithData(res, {
+        token,
+        expiry: user.expiry,
+        maxDevices: user.maxDevices,
+        totalDevices: user.devices.size,
+    });
 };
 
 
 // User Session Login
 export const userSessionLogin = async (req: Request, res: Response) => {
-    const {username} = req.user;
+    const {username, deviceID} = req.user;
     const doc: IUser | null = await User.findOne({username});
 
     if (!doc) {
@@ -133,6 +158,21 @@ export const userSessionLogin = async (req: Request, res: Response) => {
     if (doc.status !== "active") {
         return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_BANNED)
     }
+
+    // Verify device registration
+    const device = doc.devices.get(deviceID);
+    if (!device) {
+        return respondFailed(res, RESPONSE_MESSAGES.SESSION_EXPIRED);
+    }
+
+    // Check if the device itself is banned/suspended
+    if (device.status !== "active") {
+        return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_BANNED);
+    }
+
+    // Update last login time
+    device.lastLogin = getPreferredTime();
+    await doc.save();
 
     respondSuccessWithData(res, {username, expiry: doc.expiry});
 
