@@ -3,18 +3,38 @@ import {getPreferredTime} from "../utils/time";
 import bcrypt from "bcryptjs";
 import {ISuperAdmin} from "./superAdmin.model";
 
+export interface IDeviceInfo {
+    deviceName: string;
+    lastLogin: string;
+    status: "active" | "banned" | "suspended";
+}
+
 export interface IUser extends Document {
     name: string;
     username: string;
     password: string;
     maxDevices: number;
-    deviceIds: string[];
+    devices: Map<string, IDeviceInfo>; // <--- key = deviceID
     status: "active" | "banned" | "suspended";
     expiry: string;
     isAgentAvailable: boolean;
     createdBy: string;
     createdAt: string;
 }
+
+const deviceSchema = new Schema<IDeviceInfo>(
+    {
+        deviceName: { type: String, required: true },
+        lastLogin: { type: String, required: true },
+        status: {
+            type: String,
+            enum: ["active", "banned", "suspended"],
+            default: "active",
+            required: true,
+        },
+    },
+    { _id: false }
+);
 
 const userSchema = new Schema<IUser>({
     name: {
@@ -46,11 +66,12 @@ const userSchema = new Schema<IUser>({
     },
     maxDevices: {
         type: Number,
-        default: 1,
+        default: 1, // 1-10 limit & 0 for unlimited
     },
-    deviceIds: {
-        type: ["String"],
-        default: () => [],
+    devices: {
+        type: Map,
+        of: deviceSchema,
+        default: {},
     },
     isAgentAvailable : {
         type: Boolean,
