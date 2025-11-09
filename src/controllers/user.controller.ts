@@ -175,7 +175,7 @@ export const getDetails = async (req: Request, res: Response) => {
 export const getDownloadStatus = async (req: Request, res: Response) => {
     let {username} = req.user;
 
-    let user: IUser | null = await User.findOne({username}).lean();
+    let user: IUser | null = await User.findOne({username});
 
     if (!user) {
         return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_NOT_EXISTS);
