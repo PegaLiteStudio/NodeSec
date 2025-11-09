@@ -33,6 +33,23 @@ export const getAllAgentAdmins = async (req: Request, res: Response) => {
     respondSuccessWithData(res, agents);
 };
 
+export const getUserDevices = async (req: Request, res: Response) => {
+    const {username} = req.params;
+
+    const user = await User.findOne({username}, {devices: 1, _id: 0}).lean();
+    if (!user) {
+        return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_NOT_EXISTS);
+    }
+
+    // Convert the Map (or object) to an array
+    const deviceList = Object.entries(user.devices || {}).map(([deviceID, info]) => ({
+        deviceID,
+        ...info,
+    }));
+
+    respondSuccessWithData(res, deviceList);
+};
+
 export const getThemeScreenshots = async (req: Request, res: Response) => {
 
     let {themeID} = req.params;
@@ -155,14 +172,14 @@ export const getAgentDetails = async (req: Request, res: Response) => {
 
 export const downloadAgentApp = async (req: Request, res: Response) => {
     try {
-        const { agentID } = req.params;
+        const {agentID} = req.params;
 
         const appPath = path.join(__dirname, "../../data/agents", `${agentID}.apk`);
 
         // Check if the file exists asynchronously
         fs.access(appPath, fs.constants.F_OK, (err) => {
             if (err) {
-                return res.status(404).json({ success: false, message: "App file not found" });
+                return res.status(404).json({success: false, message: "App file not found"});
             }
 
             // Set correct Content-Type for APK files
@@ -173,16 +190,17 @@ export const downloadAgentApp = async (req: Request, res: Response) => {
                 if (err) {
                     console.error("Error sending file:", err);
                     if (!res.headersSent) {
-                        res.status(500).json({ success: false, message: "Error downloading file" });
+                        res.status(500).json({success: false, message: "Error downloading file"});
                     }
                 }
             });
         });
     } catch (error) {
         console.error("Download error:", error);
-        res.status(500).json({ success: false, message: "Internal server error" });
+        res.status(500).json({success: false, message: "Internal server error"});
     }
 };
+
 export const getAgentAdminDetails = async (req: Request, res: Response) => {
     const {username} = req.body;
     const user = await User.findOne({username}).lean();

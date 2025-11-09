@@ -9,7 +9,7 @@ import {
     getAllAgentAdmins,
     getAllAgents,
     getThemes,
-    getThemeScreenshots,
+    getThemeScreenshots, getUserDevices,
     saveAgentAdminChanges,
     uploadAgentApp
 } from "../controllers/admin.controller";
@@ -25,6 +25,7 @@ router.use(authorizeRoles('admin', 'super-admin'));
 router.get('/agents', getAllAgents);
 router.get('/themes', getThemes);
 router.get('/agent-admins', getAllAgentAdmins);
+router.get('/user-devices/:username', getUserDevices);
 router.get('/theme-screenshots/:themeID', getThemeScreenshots);
 router.post('/add-agent-admin', validate(addAgentAdminSchema), addAgentAdmin);
 router.post('/create-agent', createAgent);

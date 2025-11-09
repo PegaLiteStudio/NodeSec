@@ -12,6 +12,7 @@ export const saveChangesSchema = z.object({
     changes: z.object({
         name: z.string().optional(),
         password: z.string().optional(),
+        maxDevices: z.number().int().optional(),
         status: z.enum(["active", "banned", "suspended"]).optional(),
         expiry: z.string().optional(),
     })

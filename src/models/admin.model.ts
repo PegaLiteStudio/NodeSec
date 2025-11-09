@@ -70,7 +70,7 @@ const userSchema = new Schema<IAdmin>({
     },
     maxDevices: {
         type: Number,
-        default: 1, // 0 for unlimited
+        default: 1, // 1-10 limit & 0 for unlimited
     },
     deviceIds: {
         type: ["String"],
