@@ -77,6 +77,27 @@ export const deleteUserDevice = async (req: Request, res: Response) => {
     respondSuccess(res);
 };
 
+export const deleteAllUserDevices = async (req: Request, res: Response) => {
+    const {username} = req.params;
+
+    if (!username) {
+        return respondFailed(res, RESPONSE_MESSAGES.MISSING_OR_INVALID_PARAMETERS);
+    }
+
+    // Find the user document
+    const user = await User.findOne({username});
+    if (!user) {
+        return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_NOT_EXISTS);
+    }
+
+    user.devices.clear();
+
+    // Save the document
+    await user.save();
+
+    respondSuccess(res);
+};
+
 export const getThemeScreenshots = async (req: Request, res: Response) => {
 
     let {themeID} = req.params;
