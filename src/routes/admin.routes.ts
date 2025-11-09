@@ -3,7 +3,7 @@ import {authorizeRoles} from '../middlewares/role.middleware';
 import {protect} from '../middlewares/auth.middleware';
 import {
     addAgentAdmin,
-    createAgent,
+    createAgent, deleteUserDevice,
     getAgentAdminDetails,
     getAgentDetails,
     getAllAgentAdmins,
@@ -26,6 +26,7 @@ router.get('/agents', getAllAgents);
 router.get('/themes', getThemes);
 router.get('/agent-admins', getAllAgentAdmins);
 router.get('/user-devices/:username', getUserDevices);
+router.get('/delete-user-device/:username/:deviceID', deleteUserDevice);
 router.get('/theme-screenshots/:themeID', getThemeScreenshots);
 router.post('/add-agent-admin', validate(addAgentAdminSchema), addAgentAdmin);
 router.post('/create-agent', createAgent);

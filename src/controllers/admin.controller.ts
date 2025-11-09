@@ -50,6 +50,33 @@ export const getUserDevices = async (req: Request, res: Response) => {
     respondSuccessWithData(res, deviceList);
 };
 
+export const deleteUserDevice = async (req: Request, res: Response) => {
+    const {username, deviceID} = req.params;
+
+    if (!deviceID || !username) {
+        return respondFailed(res, RESPONSE_MESSAGES.MISSING_OR_INVALID_PARAMETERS);
+    }
+
+    // Find the user document
+    const user = await User.findOne({username});
+    if (!user) {
+        return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_NOT_EXISTS);
+    }
+
+    // Check if the device exists
+    if (!user.devices.has(deviceID)) {
+        return respondSuccess(res)
+    }
+
+    // Delete the device
+    user.devices.delete(deviceID);
+
+    // Save the document
+    await user.save();
+
+    respondSuccess(res);
+};
+
 export const getThemeScreenshots = async (req: Request, res: Response) => {
 
     let {themeID} = req.params;
