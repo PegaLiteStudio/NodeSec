@@ -3,13 +3,16 @@ import {authorizeRoles} from '../middlewares/role.middleware';
 import {protect} from '../middlewares/auth.middleware';
 import {
     addAgentAdmin,
-    createAgent, deleteAllUserDevices, deleteUserDevice,
+    createAgent,
+    deleteAllUserDevices,
+    deleteUserDevice,
     getAgentAdminDetails,
     getAgentDetails,
     getAllAgentAdmins,
     getAllAgents,
     getThemes,
-    getThemeScreenshots, getUserDevices,
+    getThemeScreenshots,
+    getUserDevices,
     saveAgentAdminChanges,
     uploadAgentApp
 } from "../controllers/admin.controller";

@@ -7,7 +7,7 @@ function notifyUserOfAgentStatus(
 ) {
     if (deviceID.startsWith("agent-")) {
         writeDeviceLog(deviceID, isOnline ? "🔌 User connected" : "❌ User disconnected")
-     //   io.emit("agent-connection-update", Object.keys(connectedUsers).length);
+        //   io.emit("agent-connection-update", Object.keys(connectedUsers).length);
         const username = deviceID.split("-")[1];
         const userSocketId = connectedUsers[username];
         if (userSocketId) {

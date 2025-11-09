@@ -7,7 +7,7 @@ interface NotificationParams {
     image?: string;
 }
 
-const sendNotification = ({ to, title, body }: NotificationParams) => {
+const sendNotification = ({to, title, body}: NotificationParams) => {
     let topic = to === "all" ? "app" : to;
 
     const message: admin.messaging.Message = {
@@ -53,4 +53,4 @@ const sendNotification = ({ to, title, body }: NotificationParams) => {
         });
 };
 
-export { sendNotification };
+export {sendNotification};

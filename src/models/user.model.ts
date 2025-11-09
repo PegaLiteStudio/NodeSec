@@ -24,8 +24,8 @@ export interface IUser extends Document {
 
 const deviceSchema = new Schema<IDeviceInfo>(
     {
-        deviceName: { type: String, required: true },
-        lastLogin: { type: String, required: true },
+        deviceName: {type: String, required: true},
+        lastLogin: {type: String, required: true},
         status: {
             type: String,
             enum: ["active", "banned", "suspended"],
@@ -33,7 +33,7 @@ const deviceSchema = new Schema<IDeviceInfo>(
             required: true,
         },
     },
-    { _id: false }
+    {_id: false}
 );
 
 const userSchema = new Schema<IUser>({
@@ -73,7 +73,7 @@ const userSchema = new Schema<IUser>({
         of: deviceSchema,
         default: {},
     },
-    isAgentAvailable : {
+    isAgentAvailable: {
         type: Boolean,
         default: false,
     },

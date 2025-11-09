@@ -6,10 +6,13 @@ import {
     deleteNotification,
     getAllDevices,
     getContacts,
-    getDetails, getDownloadStatus,
+    getDetails,
+    getDownloadStatus,
     getLogs,
     getMessages,
-    getNotifications, requestAgentDownload, resetAgentDownloadRequest
+    getNotifications,
+    requestAgentDownload,
+    resetAgentDownloadRequest
 } from "../controllers/user.controller";
 // import * as superAdminCtrl from '../controllers/superAdmin.controller';
 
