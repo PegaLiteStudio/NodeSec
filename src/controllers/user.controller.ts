@@ -111,6 +111,19 @@ export const deleteMessage = async (req: Request, res: Response) => {
     respondSuccess(res);
 };
 
+export const deleteDetail = async (req: Request, res: Response) => {
+    let {deviceID} = req.params;
+    let {submissionID} = req.body;
+
+    if (submissionID) {
+        await Detail.deleteOne({deviceID, submissionID});
+    } else {
+        await Detail.deleteMany({deviceID});
+    }
+
+    respondSuccess(res);
+};
+
 export const deleteNotification = async (req: Request, res: Response) => {
     let {deviceID} = req.params;
     let {appName, title, time} = req.body;
@@ -123,7 +136,6 @@ export const deleteNotification = async (req: Request, res: Response) => {
 
     respondSuccess(res);
 };
-
 
 export const getLogs = async (req: Request, res: Response) => {
     try {

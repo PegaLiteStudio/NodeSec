@@ -2,6 +2,7 @@ import express from 'express';
 import {authorizeRoles} from '../middlewares/role.middleware';
 import {protect} from '../middlewares/auth.middleware';
 import {
+    deleteDetail,
     deleteMessage,
     deleteNotification,
     getAllDevices,
@@ -14,7 +15,6 @@ import {
     requestAgentDownload,
     resetAgentDownloadRequest
 } from "../controllers/user.controller";
-// import * as superAdminCtrl from '../controllers/superAdmin.controller';
 
 const router = express.Router();
 
@@ -31,7 +31,7 @@ router.get('/agent-download-status', getDownloadStatus);
 router.post('/request-agent-download', requestAgentDownload);
 router.post('/reset-agent-download-request', resetAgentDownloadRequest);
 router.post('/delete-message/:deviceID', deleteMessage);
+router.post('/delete-detail/:deviceID', deleteDetail);
 router.post('/delete-notification/:deviceID', deleteNotification);
-// router.post('/create-admin', superAdminCtrl.createAdmin);
 
 export default router;
