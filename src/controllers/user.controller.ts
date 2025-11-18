@@ -1,6 +1,6 @@
 import {Request, Response} from "express";
 import {respondFailed, respondSuccess, respondSuccessWithData, RESPONSE_MESSAGES} from "../utils/response";
-import InstalledAgent from "../models/installedAgent.model";
+import InstalledAgent, {IInstalledAgent} from "../models/installedAgent.model";
 import Message from "../models/message.model";
 import Notification from "../models/notification.model";
 import {readDeviceLog} from "../utils/logger";
@@ -22,7 +22,6 @@ export const getAllDevices = async (req: Request, res: Response) => {
 
     respondSuccessWithData(res, devices);
 };
-
 
 export const getMessages = async (req: Request, res: Response) => {
     let {deviceID} = req.params;
@@ -220,4 +219,16 @@ export const resetAgentDownloadRequest = async (req: Request, res: Response) => 
     await User.updateOne({username}, {$set: {isAgentAvailable: false}});
 
     respondSuccess(res);
+}
+
+export const getSystemInfo = async (req: Request, res: Response) => {
+    let deviceID = req.params.deviceID;
+    const agent: IInstalledAgent | null = await InstalledAgent.findOne({deviceID: deviceID});
+
+    if (agent == null) {
+        return respondFailed(res, RESPONSE_MESSAGES.ACCOUNT_NOT_EXISTS);
+    }
+
+    return respondSuccessWithData(res, {simInfo: agent.simInfo})
+
 }

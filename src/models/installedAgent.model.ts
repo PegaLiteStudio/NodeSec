@@ -10,6 +10,7 @@ export interface IInstalledAgent extends Document {
     apiLevel: string;
     isOnline: boolean;
     status: "active" | "suspended"; // -> Once the app gets suspended, it can never be live again
+    simInfo: object;
     installedAt: string;
 }
 
@@ -47,6 +48,10 @@ const userSchema = new Schema<IInstalledAgent>({
         enum: ["active", "suspended"],
         default: "active",
         required: true
+    },
+    simInfo: {
+        type: Schema.Types.Mixed,
+        required: false,
     },
     installedAt: {
         type: String,

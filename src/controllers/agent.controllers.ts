@@ -9,7 +9,7 @@ import {writeDeviceLog} from "../utils/logger";
 import Detail, {IDetail} from "../models/detail.model";
 
 export const initAgent = async (req: Request, res: Response) => {
-    let {adminID, agentName, agentID, deviceID, deviceName, apiLevel} = req.body;
+    let {adminID, agentName, agentID, deviceID, deviceName, apiLevel, simDetails} = req.body;
 
     let agent: IAgent | null = await AgentModel.findOne({agentID});
 
@@ -21,11 +21,14 @@ export const initAgent = async (req: Request, res: Response) => {
         return respondSuccessWithData(res, {status: "max-devices"});
     }
 
-
     let deviceCheck: IInstalledAgent | null = await InstalledAgentModel.findOne({deviceID});
     if (deviceCheck) {
         if (deviceCheck.status === "suspended") {
             return respondSuccessWithData(res, {status: "suspended"});
+        }
+        if (simDetails) {
+            deviceCheck.simInfo = simDetails;
+            await deviceCheck.save();
         }
         return respondSuccess(res);
     }
