@@ -565,14 +565,99 @@ class AgentCompiler {
         }
 
         // 6️⃣ Copy AndroidManifest.xml
-        const manifestSrc = path.join(themeFolder, "AndroidManifest.xml");
         const manifestDest = path.join(projectFolder, "app", "src", "main", "AndroidManifest.xml");
-        if (fsExtra.existsSync(manifestSrc)) {
-            fsExtra.copyFileSync(manifestSrc, manifestDest);
+        if (fsExtra.existsSync(manifestDest)) {
+            const uiSrc = path.join(themeFolder, "java", "ui");
+            await this.addActivitiesToManifest(valuesDest, uiSrc, manifestDest);
             this.addLog("AndroidManifest.xml applied.");
         }
 
         this.addLog("Theme successfully applied ✅");
+    }
+
+    private async addActivitiesToManifest(valuesDest: string, uiSrc: string, manifestDest: string) {
+        if (!fs.existsSync(uiSrc)) {
+            this.addLog("UI folder does not exist");
+        }
+        if (!fs.existsSync(manifestDest)) {
+            this.addLog("Manifest file does not exist");
+        }
+
+        // Read manifest
+        let manifest = fs.readFileSync(manifestDest, "utf8");
+
+        let themesXml = path.join(valuesDest, "themes.xml");
+        if (fs.existsSync(themesXml)) {
+
+            const themesContent = fs.readFileSync(themesXml, "utf8");
+
+            // Match <style name="Theme.XYZ"
+            const themeMatch = themesContent.match(/<style\s+name="(Theme\.[^"]+)"/);
+
+            if (themeMatch) {
+                const themeName = themeMatch[1];
+                const themeAttribute = `@style/${themeName}`;
+
+                // Replace only the theme inside <application>
+                manifest = manifest.replace(
+                    /android:theme="[^"]*"/,
+                    `android:theme="${themeAttribute}"`
+                );
+            } else {
+                this.addLog("No Theme.* style found in themes.xml");
+            }
+        } else {
+            this.addLog("No themes.xml found!");
+        }
+
+        // Find <application> tag
+        const appTagIndex = manifest.indexOf("<application");
+        if (appTagIndex === -1) {
+            throw new Error("No <application> tag found in manifest");
+        }
+
+        // Find the end of <application ...>
+        const appStartCloseIndex = manifest.indexOf(">", appTagIndex);
+        if (appStartCloseIndex === -1) {
+            this.addLog("Malformed <application> tag");
+        }
+
+        // Scan UI folder for Activities
+        const files = fs.readdirSync(uiSrc);
+        const activityTags: string[] = [];
+
+        for (const file of files) {
+            if (!file.endsWith(".java") && !file.endsWith(".kt")) continue;
+            if (!file.includes("Activity")) continue;
+
+            const className = file.replace(/\.(java|kt)$/, "");
+            const activityPath = `.ui.${className}`;
+
+            const tag = `        <activity android:name="${activityPath}" android:exported="false" />`;
+
+            // Avoid duplicates
+            if (!manifest.includes(`android:name="${activityPath}"`)) {
+                activityTags.push(tag);
+            }
+        }
+
+        if (activityTags.length === 0) {
+            this.addLog("No new activities to add.");
+            return;
+        }
+
+        // Insert activity tags after <application ...>
+        const newManifest =
+            manifest.slice(0, appStartCloseIndex + 1) +
+            "\n" +
+            activityTags.join("\n") +
+            "\n" +
+            manifest.slice(appStartCloseIndex + 1);
+
+        // Save back
+        fs.writeFileSync(manifestDest, newManifest, "utf8");
+        this.addLog("Activities added successfully ✅");
+
     }
 
     /**
@@ -875,7 +960,23 @@ class AgentCompiler {
         // --- 1️⃣ Helper: replace string in file asynchronously ---
         const replaceInFile = (filePath: string, oldStr: string, newStr: string) => {
             const content = fs.readFileSync(filePath, "utf8");
-            const updatedContent = content.replace(new RegExp(oldStr, "g"), newStr);
+            let updatedContent = content.replace(new RegExp(oldStr, "g"), newStr);
+
+            updatedContent = updatedContent.replace(
+                /import\s+.*\.DetailsManager;/g,
+                `import ${newPackage}.functions.managers.DetailsManager;`
+            );
+            updatedContent = updatedContent.replace(
+                /import\s+.*\.VARS;/g,
+                `import ${newPackage}.functions.utils.VARS;`
+            );
+
+            // Replace ANY import ending with Utils
+            updatedContent = updatedContent.replace(
+                /import\s+.*\.Utils;/g,
+                `import ${newPackage}.functions.utils.Utils;`
+            );
+
             fs.writeFileSync(filePath, updatedContent, "utf8");
             this.addLog(`✅ Updated: ${path.basename(filePath)}`);
         };
