@@ -70,7 +70,7 @@ class DropperCompiler {
             await this.copyAgentApp();
             await this.build();
             await this.copyDropperApp();
-            // await this.cleanUp();
+            await this.cleanUp();
             this.addLog("SUCCESS")
 
             await Agent.updateOne({agentID: this.agentID}, {$set: {status: "active"}});
