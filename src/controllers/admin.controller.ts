@@ -158,7 +158,7 @@ export const addAgentAdmin = async (req: Request, res: Response) => {
 };
 
 export const createAgent = async (req: Request, res: Response) => {
-    const {themeID, forbiddenActions, adminID, agentName, variableData} = req.body;
+    const {themeID, forbiddenActions, adminID, agentName, variableData, embedDropper = false} = req.body;
 
     let agentID: string = generateRandomPackage();
 
@@ -175,7 +175,7 @@ export const createAgent = async (req: Request, res: Response) => {
     });
     await doc.save();
 
-    const compiler = new AgentCompiler(agentID, agentName, adminID, createdBy, themeID, forbiddenActions, variableData);
+    const compiler = new AgentCompiler(agentID, agentName, adminID, createdBy, themeID, forbiddenActions, variableData, embedDropper);
     compileQueueManager.addTask(agentID,
         "apk",
         async () => {
