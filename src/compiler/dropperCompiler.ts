@@ -322,7 +322,7 @@ class DropperCompiler {
         updateJavaFiles(newPath);
 
         // --- 6️⃣ Remove old package directories ---
-        fs.rmSync(path.join(srcPath, "com", "kin"), {recursive: true, force: true}); //TODO
+        fs.rmSync(path.join(srcPath, "com", "kin"), {recursive: true, force: true});
 
         this.addLog(`✅ Package renamed to: ${newPackage}`);
     }
