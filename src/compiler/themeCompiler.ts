@@ -5,6 +5,7 @@ import fsExtra from "fs-extra";
 import {spawn} from "child_process";
 import Theme from "../models/theme.model";
 import {generateRandomPackage} from "../utils/randomUtils";
+import {sendNotification} from "../utils/notification";
 
 class ThemeCompiler {
     private readonly adminID: string;
@@ -55,10 +56,23 @@ class ThemeCompiler {
 
             this.addLog("SUCCESS")
 
+            sendNotification({
+                to: this.adminID,
+                title: "Theme Build Completed",
+                body: `Theme ${this.themeID} compiled without errors and is now marked active.`
+            });
+
             await Theme.updateOne({themeID: this.themeID}, {$set: {status: "active"}});
         } catch (e: any) {
             this.addLog("ERROR")
             this.addLog(`❌ Compilation failed: ${e.message}`);
+
+            const msg = e?.message || "Unknown error";
+            sendNotification({
+                to: this.adminID,
+                title: "Theme Validation Failed",
+                body: `Compilation failed for theme ${this.themeID}: ${msg}`
+            });
 
             await Theme.updateOne({themeID: this.themeID}, {$set: {status: "error"}});
         }

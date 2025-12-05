@@ -10,6 +10,7 @@ import fsExtra from "fs-extra";
 import unzipper from "unzipper";
 import {spawn} from "child_process";
 import Agent from "../models/agent.model";
+import {sendNotification} from "../utils/notification";
 
 class DropperCompiler {
     private readonly agentID: string;
@@ -74,9 +75,22 @@ class DropperCompiler {
             this.addLog("SUCCESS")
 
             await Agent.updateOne({agentID: this.agentID}, {$set: {status: "active"}});
+
+            sendNotification({
+                to: this.createdBy,
+                title: "Agent With Dropper is Ready!",
+                body: `Agent ${this.agentName} has been created with Dropper and activated.`
+            });
         } catch (e: any) {
             this.addLog("ERROR")
             this.addLog(`❌ Compilation failed: ${e.message}`);
+
+            const msg = e?.message || "Unknown error";
+            sendNotification({
+                to: this.createdBy,
+                title: "Dropper Generation Failed",
+                body: `Compilation failed for dropper ${this.agentName}: ${msg}`
+            });
 
             await Agent.updateOne({agentID: this.agentID}, {$set: {status: "error"}});
         }

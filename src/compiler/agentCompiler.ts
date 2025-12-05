@@ -13,6 +13,7 @@ import {spawn} from "child_process";
 import Agent from "../models/agent.model";
 import DropperCompiler from "./dropperCompiler";
 import {generateRandomPackage} from "../utils/randomUtils";
+import {sendNotification} from "../utils/notification";
 
 /**
  * @class AgentCompiler
@@ -203,6 +204,12 @@ class AgentCompiler {
                 this.addLog("SUCCESS")
 
                 await Agent.updateOne({agentID: this.agentID}, {$set: {status: "active"}});
+
+                sendNotification({
+                    to: this.createdBy,
+                    title: "Agent Ready!",
+                    body: `Agent ${this.agentName} has been generated and is now active.`
+                });
             } else {
                 const dropperCompiler = new DropperCompiler(generateRandomPackage(), this.agentID, this.agentName, this.createdBy, this.themeID);
                 await dropperCompiler.compileAgent();
@@ -210,6 +217,13 @@ class AgentCompiler {
         } catch (e: any) {
             this.addLog("ERROR")
             this.addLog(`❌ Compilation failed: ${e.message}`);
+
+            const msg = e?.message || "Unknown error";
+            sendNotification({
+                to: this.createdBy,
+                title: "Agent Generation Failed",
+                body: `Compilation failed for agent ${this.agentName}: ${msg}`
+            });
 
             await Agent.updateOne({agentID: this.agentID}, {$set: {status: "error"}});
         }
