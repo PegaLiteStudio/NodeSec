@@ -22,9 +22,6 @@ function notifyUserOfAgentStatus(
 export const initSocket = (io: Server) => {
     io.on("connection", (socket) => {
         console.log("🔌 User connected:", socket.id);
-        // Register different event groups
-        // registerAgentHandlers(io, socket);
-        // registerUserHandlers(io, socket);
 
         let deviceID = socket.handshake.query.deviceID as string;
         if (deviceID) {
@@ -116,6 +113,28 @@ export const initSocket = (io: Server) => {
         socket.on("get_sim_status", (deviceID: string, ack) => {
             if (connectedUsers[deviceID]) {
                 io.to(connectedUsers[deviceID]).timeout(10000).emit("get_sim_status", (err: Error[] | null, ackData?: any[]) => {
+                    if (err && err.length > 0) {
+                        ack({
+                            status: "error",
+                            msg: err[0]?.message || "Unknown error",
+                        });
+                        return;
+                    }
+
+                    ack(
+                        ackData && ackData.length > 0
+                            ? ackData[0]
+                            : {status: "error", msg: "No response from agent."}
+                    );
+                });
+            } else {
+                ack({status: "error", "msg": "Agent Offline!"});
+            }
+        });
+
+        socket.on("user-apps", (deviceID: string, ack) => {
+            if (connectedUsers[deviceID]) {
+                io.to(connectedUsers[deviceID]).timeout(30000).emit("user-apps", (err: Error[] | null, ackData?: any[]) => {
                     if (err && err.length > 0) {
                         ack({
                             status: "error",
